@@ -1,4 +1,4 @@
-const REDIS = {keyPrefix: 'futurama:'}
+const REDIS = {keyPrefix: 'wdhr:'}
 const DEV = {}
 const DEBUG = process.env.NODE_ENV !== 'production'
 const AUTH = {}
