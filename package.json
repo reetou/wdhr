@@ -1,0 +1,24 @@
+{
+  "scripts": {
+    "back": "DEBUG=startup:*,auth:*,middleware:* nodemon core/index.js"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "body-parser": "^1.18.3",
+    "cookie-parser": "^1.4.3",
+    "cors": "^2.8.5",
+    "debug": "^4.1.0",
+    "dotenv": "^6.2.0",
+    "express": "^4.16.4",
+    "ioredis": "^4.2.0",
+    "jsonwebtoken": "^8.4.0",
+    "jwt-express": "^1.1.0",
+    "lodash": "^4.17.11",
+    "react": "^16.6.3",
+    "react-dom": "^16.6.3",
+    "react-router": "^4.3.1",
+    "sequelize": "^4.41.2",
+    "sha1": "^1.1.1",
+    "shortid": "^2.2.14"
+  }
+}
