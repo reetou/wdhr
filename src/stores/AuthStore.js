@@ -61,7 +61,7 @@ export default class AuthStore {
       console.log('INTERCEPTOR RES', res)
       return res
     }, err => {
-      if (err.response.data.err && (err.response.data.err === 'jwt expired' || err.response.data.err === 'jwt malformed')) {
+      if (_.at(err, 'response.data.err')[0] && (err.response.data.err === 'jwt expired' || err.response.data.err === 'jwt malformed')) {
         console.log('Token expired, refreshing')
         const originalRequest = err.response.config
         console.log('Config', originalRequest)

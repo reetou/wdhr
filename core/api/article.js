@@ -5,38 +5,37 @@ const shortID = require('shortid')
 const JWT = require('jsonwebtoken')
 const db = require('../db')
 const { AUTH } = require('../config')
-const _ = require('lodash')
-const Projects = require('../projects')
+const Article = require('../article')
 const { asyncFn, checkForFields, checkJWT } = require('../middleware')
 
 router.get('/', asyncFn(async (req, res) => {
   const cursor = req.query.cursor || 0
-  const projects = await Projects.get(cursor)
-  res.send(projects)
+  const articles = await Article.get(cursor)
+  res.send(articles)
 }))
 
-router.post('/', checkJWT(), checkForFields(Projects.CREATE_PROPS), asyncFn(async (req, res) => {
+router.post('/', checkJWT(), checkForFields(Article.CREATE_PROPS), asyncFn(async (req, res) => {
   const data = req.body
-  const result = await Projects.create(data.name, data.description, data.title, data.estimates, data.type, req.jwt.login, data.budget, data.is_public)
-  if (!result) res.status(500).send({ err: `Не могу создать проект` })
+  const result = await Article.create(data.title, data.content, data.type, data.author, data.is_public)
+  if (!result) res.status(500).send({ err: `Не могу создать статью` })
   res.send(result)
 }))
 
 router.delete('/:id', checkJWT(), asyncFn(async (req, res) => {
   const id = req.params.id
   if (!id || !_.isInteger(Number(id))) return res.status(400).send({ err: `Invalid id` })
-  const result = await Projects.remove(id, req.jwt.login)
-  if (!result) return res.status(403).send({ err: `Deleting not own project or no project ${id} found` })
+  const result = await Article.remove(id, req.jwt.login)
+  if (!result) return res.status(403).send({ err: `Deleting not own article or no article ${id} found` })
   res.send({ id, deleted: true })
 }))
 
 router.post('/rate', checkJWT(), checkForFields({ id: 'number' }), asyncFn(async (req, res) => {
-  const updatedRating = await Projects.uprate(req.body.id, req.jwt.login)
+  const updatedRating = await Article.uprate(req.body.id, req.jwt.login)
   res.send({ rating: updatedRating })
 }))
 
 router.delete('/rate', checkJWT(), checkForFields({ id: 'number' }), asyncFn(async (req, res) => {
-  const updatedRating = await Projects.downrate(req.body.id, req.jwt.login)
+  const updatedRating = await Article.downrate(req.body.id, req.jwt.login)
   res.send({ rating: updatedRating })
 }))
 

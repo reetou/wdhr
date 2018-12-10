@@ -15,36 +15,36 @@ const IconText = ({ type, text, rated, onClick }) => (
   </span>
 );
 
-@inject('app', 'auth', 'project')
+@inject('app', 'auth', 'article')
 @withRouter
 @observer
-export default class AllProjects extends React.Component {
+export default class AllArticles extends React.Component {
 
   componentDidMount() {
-    if (!this.props.project.cursor) {
-      this.props.project.loadAll()
+    if (!this.props.article.cursor) {
+      this.props.article.loadAll()
     }
   }
 
   render() {
     const app = this.props.app
     const auth = this.props.auth
-    const project = this.props.project
-    const loadMore = !project.loading && project.hasMore ? (
+    const article = this.props.article
+    const loadMore = !article.loading && article.hasMore ? (
       <div style={{
         textAlign: 'center', marginTop: 12, height: 32, lineHeight: '32px',
       }}
       >
-        <Button onClick={project.loadAll}>Еще</Button>
+        <Button onClick={article.loadAll}>Еще</Button>
       </div>
     ) : null
     return (
       <div style={{ padding: 24, background: '#fff', height: 690, overflow: 'auto' }}>
-        <h1>Проекты <Button onClick={project.loadAll} disabled={project.loading}>{project.hasMore ? 'Подгрузить еще' : 'Загрузить заново'}</Button></h1>
+        <h1>Статьи <Button onClick={article.loadAll}>{article.hasMore ? 'Подгрузить еще' : 'Загрузить заново'}</Button></h1>
         <List
           loadMore={loadMore}
           itemLayout={'vertical'}
-          dataSource={project.sortedProjects}
+          dataSource={article.sortedArticles}
           renderItem={item => (
             <List.Item
               key={item.id}
@@ -52,8 +52,8 @@ export default class AllProjects extends React.Component {
                 <IconText
                   type="like-o"
                   text={item.rating}
-                  rated={auth.user.rated.includes(Number(item.id))}
-                  onClick={() => project.rate(Number(item.id), auth.user.rated.includes(Number(item.id)))}
+                  rated={auth.user.rated_articles.includes(Number(item.id))}
+                  onClick={() => article.rate(Number(item.id), auth.user.rated_articles.includes(Number(item.id)))}
                 />
               ]}
             >
@@ -66,7 +66,7 @@ export default class AllProjects extends React.Component {
             </List.Item>
           )}
         >
-          {project.loading && (
+          {article.loading && (
             <div style={{ textAlign: 'center', marginTop: 15 }}>
               <Spin />
             </div>

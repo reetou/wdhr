@@ -11,10 +11,10 @@ const FormItem = Form.Item;
 const TextArea = Input.TextArea
 const Option = Select.Option
 
-@inject('app', 'auth', 'project')
+@inject('app', 'auth', 'article')
 @withRouter
 @observer
-class CreateProject extends React.Component {
+class CreateArticle extends React.Component {
 
   validate = () => {
     return new Promise((resolve, reject) => {
@@ -32,13 +32,13 @@ class CreateProject extends React.Component {
     e.preventDefault()
     try {
       const data = await this.validate()
-      await this.props.project.create(data)
+      await this.props.article.create(data)
     } catch (e) {
       console.log('Err', e)
       const validationErr = _.at(e, 'response.data.err')[0]
       if (validationErr) {
-        this.props.project.error = validationErr
-        this.timeout = setTimeout(() => this.props.project.error = '', 2500)
+        this.props.article.error = validationErr
+        this.timeout = setTimeout(() => this.props.article.error = '', 2500)
       }
       // noop
     }
@@ -46,42 +46,31 @@ class CreateProject extends React.Component {
   render() {
     const app = this.props.app
     const auth = this.props.auth
-    const project = this.props.project
+    const article = this.props.article
     const { getFieldDecorator } = this.props.form
     return (
       <Layout style={{ backgroundColor: '#fff', padding: 24 }}>
-        <h2>{project.loading ? 'Гружу...' : 'Создаем проект'}</h2>
+        <h2>{article.loading ? 'Гружу...' : 'Создаем статью'}</h2>
         { this.props.auth.error ? <h4 style={{ color: 'red' }}>{this.props.auth.error}</h4> : null }
         <Form onSubmit={this.submit}>
-          <FormItem>
-            {getFieldDecorator('name', {
-              rules: [
-                { required: false, message: 'Название обязательно' },
-                { max: 15, message: 'Не больше 15 символов' },
-                { whitespace: true, message: 'Без пробелов' }
-              ],
-            })(
-              <Input placeholder="Название проекта" />
-            )}
-          </FormItem>
           <FormItem>
             {getFieldDecorator('title', {
               rules: [
                 { required: false, message: 'Поле пустое' },
-                { max: 70, message: 'Не больше 70 символов' },
+                { max: 40, message: 'Не больше 40 символов' },
               ],
             })(
-              <Input placeholder="Краткое описание" />
+              <Input placeholder="Заголовок" />
             )}
           </FormItem>
           <FormItem>
-            {getFieldDecorator('description', {
+            {getFieldDecorator('content', {
               rules: [
                 { required: false, message: 'Поле пустое' },
                 { max: 1000, message: 'Не больше 1000 символов' },
               ],
             })(
-              <TextArea autosize={{ minRows: 6 }} prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)', minHeight: 120 }} />} placeholder="Подробное описание (до тысячи символов)" />
+              <TextArea autosize={{ minRows: 6 }} prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)', minHeight: 120 }} />} placeholder="Текст" />
             )}
           </FormItem>
           <FormItem>
@@ -97,38 +86,11 @@ class CreateProject extends React.Component {
             )}
           </FormItem>
           <FormItem>
-            <div>Бюджет</div>
-            {getFieldDecorator('budget', {
-              rules: [
-                { required: false, message: 'Поле пустое' },
-              ],
-            })(
-              <InputNumber
-                defaultValue={100}
-                formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                parser={value => value.replace(/\$\s?|(,*)/g, '')}
-              />
-            )}
-          </FormItem>
-          <FormItem>
-            <div>Сроки (в днях)</div>
-            {getFieldDecorator('estimates', {
-              rules: [
-                { required: false, message: 'Поле пустое' },
-              ],
-            })(
-              <InputNumber
-                defaultValue={30}
-                parser={value => value.replace(/\$\s?|(,*)/g, '')}
-              />
-            )}
-          </FormItem>
-          <FormItem>
             {getFieldDecorator('is_public', {
               rules: [
               ],
             })(
-              <Checkbox>Публичный</Checkbox>
+              <Checkbox>Публичная</Checkbox>
             )}
           </FormItem>
           <FormItem>
@@ -142,5 +104,5 @@ class CreateProject extends React.Component {
   }
 }
 
-const WrappedNormalLoginForm = Form.create()(CreateProject);
+const WrappedNormalLoginForm = Form.create()(CreateArticle);
 export default WrappedNormalLoginForm

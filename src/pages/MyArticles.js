@@ -15,25 +15,25 @@ const IconText = ({ type, text, rated, onClick }) => (
   </span>
 );
 
-@inject('app', 'auth', 'project')
+@inject('app', 'auth', 'article')
 @withRouter
 @observer
-export default class MyProjects extends React.Component {
+export default class MyArticles extends React.Component {
 
   render() {
     const app = this.props.app
     const auth = this.props.auth
-    const project = this.props.project
+    const article = this.props.article
     return (
       <div style={{ padding: 24, background: '#fff', minHeight: 460 }}>
         <h1>
-          <span style={{ marginRight: 10 }}>Мои проекты</span>
-          <Button disabled={project.loading} style={{ marginRight: 10 }} onClick={() => this.props.history.push('/myprojects/create')}>Новый проект</Button>
-          <Button disabled={project.loading} style={{ marginRight: 10 }} onClick={project.loadUserProjects}>{project.userProjects.length ? 'Обновить' : 'Загрузить'}</Button>
+          <span style={{ marginRight: 10 }}>Мои статьи</span>
+          <Button disabled={article.loading} style={{ marginRight: 10 }} onClick={() => this.props.history.push('/myarticles/create')}>Новая статья</Button>
+          <Button disabled={article.loading} style={{ marginRight: 10 }} onClick={article.loadUserArticles}>{article.userArticles.length ? 'Обновить' : 'Загрузить'}</Button>
         </h1>
         <List
           itemLayout={'vertical'}
-          dataSource={project.sortedUserProjects}
+          dataSource={article.sortedUserArticles}
           renderItem={item => (
             <List.Item
               key={item.id}
@@ -45,10 +45,10 @@ export default class MyProjects extends React.Component {
                 <IconText
                   type={'delete'}
                   text={'Удалить'}
-                  onClick={() => project.remove(item.id)}
+                  onClick={() => article.remove(item.id)}
                 />,
                 <IconText
-                  onClick={() => project.edit(item.id, { is_public: !item.is_public })}
+                  onClick={() => article.edit(item.id, { is_public: !item.is_public })}
                   type={item.is_public ? 'unlock' : 'lock'}
                   text={item.is_public ? 'Публичный' : 'Приватный'}
                 />
@@ -56,14 +56,14 @@ export default class MyProjects extends React.Component {
             >
               <List.Item.Meta
                 avatar={<Avatar src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png" />}
-                title={<a>{item.name}</a>}
+                title={<a>{item.title}</a>}
                 description={item.type.join(', ')}
               />
-              <div>{item.title}...</div>
+              <div>{item.content.substring(0, 100)}...</div>
             </List.Item>
           )}
         >
-          {project.loading ? (
+          {article.loading ? (
             <div style={{ textAlign: 'center', marginTop: 15 }}>
               <Spin />
             </div>

@@ -23,11 +23,17 @@ class User {
     return _.map(rated, v => JSON.parse(v).id)
   }
 
-  async getSafeUserData(login, withToken = false, withRatedProjects = false) {
+  async getRatedArticles(login) {
+    const rated = await db.findAllInHash(`article_${login}_rated`)
+    return _.map(rated, v => JSON.parse(v).id)
+  }
+
+  async getSafeUserData(login, withToken = false, withRatedProjects = false, withRatedArticles) {
     const user = await this.get(login)
     if (!user) return false
     if (!withToken) delete user.token
     if (withRatedProjects) user.rated = await this.getRatedProjects(login)
+    if (withRatedArticles) user.rated_articles = await this.getRatedArticles(login)
     delete user.sessions
     delete user.password
     return user

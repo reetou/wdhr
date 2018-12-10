@@ -12,7 +12,10 @@ import Login from './pages/Login'
 import { BrowserRouter as Router, Route, Link, Redirect, Switch } from "react-router-dom";
 import MyProjects from "./pages/MyProjects"
 import AllProjects from "./pages/AllProjects"
+import MyArticles from "./pages/MyArticles"
+import AllArticles from "./pages/AllArticles"
 import CreateProject from "./pages/CreateProject"
+import CreateArticle from "./pages/CreateArticle"
 
 const stores = createStores()
 
@@ -29,7 +32,10 @@ ReactDOM.render(
         <Route path="/login" render={() => stores.auth.loggedIn ? <Redirect to={'/profile'}/> : <Login />} />
         <Route exact path="/myprojects" render={() => stores.auth.loggedIn ? <MyProjects/> : <Redirect to={'/login'}/>} />
         <Route exact path="/projects" render={() => stores.auth.loggedIn ? <AllProjects/> : <Redirect to={'/login'}/>} />
+        <Route exact path="/myarticles" render={() => stores.auth.loggedIn ? <MyArticles/> : <Redirect to={'/login'}/>} />
+        <Route exact path="/articles" render={() => stores.auth.loggedIn ? <AllArticles/> : <Redirect to={'/login'}/>} />
         <Route path="/myprojects/create" render={() => stores.auth.loggedIn ? <CreateProject/> : <Redirect to={'/login'}/>} />
+        <Route path="/myarticles/create" render={() => stores.auth.loggedIn ? <CreateArticle/> : <Redirect to={'/login'}/>} />
         <Route path="/about" component={About} />
         <DevTools/>
       </MainPage>

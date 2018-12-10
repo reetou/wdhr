@@ -18,7 +18,7 @@ class Projects {
       description: 'string',
       title: 'string',
       estimates: 'number',
-      type: 'number',
+      type: 'object',
       is_public: 'boolean',
       budget: 'number'
     }
@@ -39,7 +39,7 @@ class Projects {
     }))
     projects = _.sortBy(projects, 'date')
     if (!asc) projects = projects.reverse()
-    return { projects, cursor: updatedCursor }
+    return { projects: projects.filter(p => p.is_public), cursor: updatedCursor }
   }
 
   async getUserProjects(login) {
@@ -158,14 +158,15 @@ class Projects {
   }
 
   async save(project) {
+    const now = Date.now()
     if (!project.id || !project.author) return false
     await db.addToHash(`projects_${project.author}`, project.id, JSON.stringify(project))
     await db.addToHash(`projects`, project.id, JSON.stringify(project))
-    await db.addToHash(`projects_edits`, `id_${project.id}_${Date.now()}`, JSON.stringify({ date: Date.now(), project }))
+    await db.addToHash(`projects_edits`, `id_${project.id}_${now}`, JSON.stringify({ date: now, project }))
     return project
   }
 
-  async delete(id, login) {
+  async remove(id, login) {
     let project = await db.findInHash('projects', id)
     if (!project) return false
     project = JSON.parse(project)
@@ -191,9 +192,7 @@ class Projects {
       is_public
     }
     await db.addToHash(`projects_${author}`, id, JSON.stringify(data))
-    if (is_public) {
-      await db.addToHash('projects', id, JSON.stringify(data))
-    }
+    await db.addToHash('projects', id, JSON.stringify(data))
     return await this.getById(id, author)
   }
 
