@@ -9,19 +9,17 @@ const logError = require('debug')('article:error')
 class Article {
   
   constructor() {
-    this.ALLOWED_EDIT_PROPS = ['title', 'content']
+    this.ALLOWED_EDIT_PROPS = ['title', 'content', 'is_public']
     this.CREATE_PROPS = {
       title: 'string',
       content: 'string',
-      type: 'object',
-      author: 'string',
+      type: 'array',
       is_public: 'boolean'
     }
   }
 
   async get(cursor = 0, asc = true) {
     const data = await db.scanHash('articles', cursor)
-    console.log('article SCAN', data)
     const updatedCursor = data[0]
     let articles = data[1].filter(v => typeof JSON.parse(v) === 'object')
     articles = await Promise.all(_.map(articles, async p => {
@@ -66,7 +64,6 @@ class Article {
   }
 
   async getRating(id) {
-    console.log('Getting rating for article, id', id)
     return await db.getHashLen(`article_${id}_rating`)
   }
   
@@ -102,7 +99,9 @@ class Article {
     let article = await this.getById(id, login, true)
     const oldEdit = JSON.stringify(article)
     if (!article) return false
+    console.log('DATA AT EDIT', data)
     _.forEach(data, (value, key) => {
+      console.log('Value', value, `includes key ${key}? ${this.ALLOWED_EDIT_PROPS.includes(key)}`)
       if (this.ALLOWED_EDIT_PROPS.includes(key)) article[key] = value
     })
     const newEdit = JSON.stringify(article)

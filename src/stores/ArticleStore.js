@@ -40,11 +40,11 @@ export default class ArticleStore {
       data: {
         ...data,
         is_public: data.is_public || false,
-        type: Number(data.type)
       }
     }))
-    obs
-      .finally(() => this.loading = false)
+      .finally(() => {
+        this.loading = false
+      })
       .subscribe(v => console.log('V???', v), err => console.log('ERrr', err), (d) => console.log('complete', d))
   }
 
@@ -58,8 +58,9 @@ export default class ArticleStore {
         Token: this.auth.user.token
       },
     }))
-    obs
-      .finally(() => this.loading = false)
+      .finally(() => {
+        this.loading = false
+      })
       .subscribe(
         v => console.log('Deleted article', v.data),
         err => console.log('Err at delete article', err),
@@ -82,8 +83,9 @@ export default class ArticleStore {
       },
       data,
     }))
-    obs
-      .finally(() => this.loading = false)
+      .finally(() => {
+        this.loading = false
+      })
       .subscribe(
         v => console.log('Edited article', v.data),
         err => console.log('Err at delete article', err),
@@ -105,8 +107,9 @@ export default class ArticleStore {
         Token: this.auth.user.token
       },
     }))
-    obs
-      .finally(() => this.loading = false)
+      .finally(() => {
+        this.loading = false
+      })
       .subscribe(
         res => {
           this.userArticles = res.data.articles
@@ -139,8 +142,9 @@ export default class ArticleStore {
         Token: this.auth.user.token
       },
     }))
-    obs
-      .finally(() => this.loading = false)
+      .finally(() => {
+        this.loading = false
+      })
       .subscribe(
         res => {
           this.articles = this.articles.concat(res.data.articles)
@@ -175,8 +179,9 @@ export default class ArticleStore {
         Token: this.auth.user.token
       }
     }))
-    obs
-      .finally(() => this.loading = false)
+      .finally(() => {
+        this.loading = false
+      })
       .subscribe(
         res => console.log('Received response', res),
         e => console.log('Error at rate article', e),

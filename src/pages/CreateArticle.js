@@ -56,7 +56,7 @@ class CreateArticle extends React.Component {
           <FormItem>
             {getFieldDecorator('title', {
               rules: [
-                { required: false, message: 'Поле пустое' },
+                { required: true, message: 'Поле пустое' },
                 { max: 40, message: 'Не больше 40 символов' },
               ],
             })(
@@ -66,7 +66,7 @@ class CreateArticle extends React.Component {
           <FormItem>
             {getFieldDecorator('content', {
               rules: [
-                { required: false, message: 'Поле пустое' },
+                { required: true, message: 'Как ты статью собрался писать, если тут пусто? Ты дурной?' },
                 { max: 1000, message: 'Не больше 1000 символов' },
               ],
             })(
@@ -76,12 +76,20 @@ class CreateArticle extends React.Component {
           <FormItem>
             {getFieldDecorator('type', {
               rules: [
-                { required: false, message: 'Выбери тип' },
+                { required: true, message: 'Выбери хотя бы одно направление' },
               ],
             })(
-              <Select defaultValue="1" style={{ width: 120 }}>
-                <Option value="1">FRONTEND</Option>
-                <Option value="2">BACKEND</Option>
+              <Select
+                mode="multiple"
+                style={{ width: '100%' }}
+                placeholder="Направления"
+                defaultValue={[]}
+                onChange={val => console.log('Val', val)}
+              >
+                {
+                  [{ name: 'FRONTEND', value: 1 }, { name: 'BACKEND', value: 2 }]
+                    .map(i => <Option key={i.value}>{i.name}</Option>)
+                }
               </Select>
             )}
           </FormItem>

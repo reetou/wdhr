@@ -23,7 +23,7 @@ router.post('/login', checkForFields({ login: 'string', password: 'string' }), a
   if (!user) return res.status(401).send({ err: `Неправильная пара логин-пароль` })
   const freshToken = await User.processSession(data.login)
   res.send({
-    ...await User.getSafeUserData(data.login),
+    ...await User.getSafeUserData(data.login, false, true, true),
     token: freshToken
   })
 }))
@@ -31,7 +31,6 @@ router.post('/login', checkForFields({ login: 'string', password: 'string' }), a
 router.post('/token', checkJWT(true), asyncFn(async (req, res, next) => {
   const token = req.get('Token')
   let decoded = req.jwt
-  console.log('Decoded', decoded)
   if (decoded.exp > Date.now() / 1000) {
     return res.send({ token, err: 'Token valid'})
   }
@@ -56,7 +55,7 @@ router.post('/token', checkJWT(true), asyncFn(async (req, res, next) => {
   const freshToken = JWT.sign(payload, AUTH.jwtSecret, {expiresIn: AUTH.jwtExpireTime})
   user.token = freshToken
   await User.save(user)
-  res.send({ token: freshToken, ...await User.getSafeUserData(user.login) })
+  res.send({ token: freshToken, ...await User.getSafeUserData(user.login, false, true, true) })
 }))
 
 module.exports = router

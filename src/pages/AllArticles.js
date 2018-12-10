@@ -62,7 +62,7 @@ export default class AllArticles extends React.Component {
                 title={<a>{item.name}</a>}
                 description={item.title}
               />
-              <div>{item.description.substring(0, 100)}...</div>
+              <div>{item.content.substring(0, 100)}...</div>
             </List.Item>
           )}
         >

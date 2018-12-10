@@ -18,7 +18,7 @@ class Projects {
       description: 'string',
       title: 'string',
       estimates: 'number',
-      type: 'object',
+      type: 'array',
       is_public: 'boolean',
       budget: 'number'
     }
@@ -72,7 +72,6 @@ class Projects {
   }
 
   async getRating(id) {
-    console.log('Getting rating for id', id)
     return await db.getHashLen(`project_${id}_rating`)
   }
 
@@ -158,6 +157,7 @@ class Projects {
   }
 
   async save(project) {
+    console.log('Triggered save?')
     const now = Date.now()
     if (!project.id || !project.author) return false
     await db.addToHash(`projects_${project.author}`, project.id, JSON.stringify(project))
@@ -191,6 +191,7 @@ class Projects {
       budget,
       is_public
     }
+    console.log('Triggered create', author)
     await db.addToHash(`projects_${author}`, id, JSON.stringify(data))
     await db.addToHash('projects', id, JSON.stringify(data))
     return await this.getById(id, author)

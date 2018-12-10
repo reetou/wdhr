@@ -8,7 +8,6 @@ const scanHash = async function removeFromHash(hash, cursor) {
 				reject(err)
 				return
 			}
-			console.log('Reply at hash scan', reply)
 
 			resolve(reply)
 		})

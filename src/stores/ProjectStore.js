@@ -40,12 +40,12 @@ export default class ProjectStore {
       data: {
         ...data,
         is_public: data.is_public || false,
-        type: Number(data.type)
       }
     }))
-    obs
-      .finally(() => this.loading = false)
-      .subscribe(v => console.log('V???', v), err => console.log('ERrr', err), (d) => console.log('complete', d))
+      .finally(() => {
+        this.loading = false
+      })
+      .subscribe(v => console.log('V???', v), err => console.log('Error at create project', err), (d) => console.log('complete', d))
   }
 
   @action.bound
@@ -58,8 +58,9 @@ export default class ProjectStore {
         Token: this.auth.user.token
       },
     }))
-    obs
-      .finally(() => this.loading = false)
+      .finally(() => {
+        this.loading = false
+      })
       .subscribe(
         v => console.log('Deleted project', v.data),
         err => console.log('Err at delete project', err),
@@ -82,8 +83,9 @@ export default class ProjectStore {
       },
       data,
     }))
-    obs
-      .finally(() => this.loading = false)
+      .finally(() => {
+        this.loading = false
+      })
       .subscribe(
         v => console.log('Edited project', v.data),
         err => console.log('Err at delete project', err),
@@ -105,8 +107,9 @@ export default class ProjectStore {
         Token: this.auth.user.token
       },
     }))
-    obs
-      .finally(() => this.loading = false)
+      .finally(() => {
+        this.loading = false
+      })
       .subscribe(
         res => {
           this.userProjects = res.data.projects
@@ -139,8 +142,9 @@ export default class ProjectStore {
         Token: this.auth.user.token
       },
     }))
-    obs
-      .finally(() => this.loading = false)
+      .finally(() => {
+        this.loading = false
+      })
       .subscribe(
         res => {
           this.projects = this.projects.concat(res.data.projects)
@@ -174,8 +178,9 @@ export default class ProjectStore {
         Token: this.auth.user.token
       }
     }))
-    obs
-      .finally(() => this.loading = false)
+      .finally(() => {
+        this.loading = false
+      })
       .subscribe(
         res => console.log('Received response', res),
         e => console.log('Error at rate', e),

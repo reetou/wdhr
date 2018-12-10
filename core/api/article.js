@@ -16,7 +16,7 @@ router.get('/', asyncFn(async (req, res) => {
 
 router.post('/', checkJWT(), checkForFields(Article.CREATE_PROPS), asyncFn(async (req, res) => {
   const data = req.body
-  const result = await Article.create(data.title, data.content, data.type, data.author, data.is_public)
+  const result = await Article.create(data.title, data.content, data.type, req.jwt.login, data.is_public)
   if (!result) res.status(500).send({ err: `Не могу создать статью` })
   res.send(result)
 }))

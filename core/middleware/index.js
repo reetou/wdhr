@@ -8,30 +8,35 @@ const DEBUG = process.env.NODE_ENV !== 'production'
 const TEST = process.env.TEST === 'true'
 
 const asyncFn = fn => (req, res, next) => {
-  console.log('At async fnz')
 	Promise.resolve(fn(req, res, next)).catch((e) => {
-	  console.log('Error at async fn', e)
+	  console.log(`Error at async fn, url: ${req.url}`, e)
 		logMiddlewareError(`Error at asyncFn middleware`, e)
 		next(e)
 	})
 }
 
 const checkForFields = (fields = {}) => {
+  const getType = (value, type) => {
+    switch (type) {
+      case 'array':
+        return Array.isArray(value)
+      default:
+        return typeof value === type
+    }
+  }
   return asyncFn(async (req, res, next) => {
     try {
       const data = req.body
       for (let field in fields) {
         const type = fields[field]
         if (!data.hasOwnProperty(field)) return res.status(400).send({ err: `No field ${field} provided, expected ${type}` })
-        if (typeof data[field] !== type) return res.status(400).send({ err: `Invalid type for field ${field}, expected: ${type}, received: ${data[field]}` })
+        if (!getType(data[field], type)) return res.status(400).send({ err: `Invalid type for field ${field}, expected: ${type}, received: ${data[field]}` })
       }
-      console.log('OK')
     } catch (e) {
       console.log('Error at middleware')
       logMiddlewareError(`Err at check for fields ${Object.keys(fields)} by slug middleware, params.id: ${req.params.id}`, e)
       return res.send({ err: `Internal err, aborting` })
     }
-    console.log('Will return next')
     return next()
   })
 }
@@ -73,12 +78,11 @@ const checkJWT = (ignoreExpire = false) => {
   return asyncFn(async (req, res, next) => {
     try {
       const token = req.get('Token')
-      console.log('At jwt', token)
 			if (!token) return res.status(403).send({ err: `Без токена никак` })
       try {
         req.jwt = JWT.verify(token, AUTH.jwtSecret, { ignoreExpiration: ignoreExpire })
       } catch (e) {
-        res.status(401).send({ err: e.message })
+        return res.status(401).send({ err: e.message })
       }
     } catch (e) {
       logMiddlewareError(`Err at check jwt by middleware`, e)

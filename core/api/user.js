@@ -12,7 +12,7 @@ const Article = require('../article')
 const { asyncFn, checkForFields, checkJWT, checkIfLoginUnique, uniqueFields } = require('../middleware')
 
 router.get('/', checkJWT(), asyncFn(async (req, res) => {
-  res.send(await User.getSafeUserData(req.jwt.login, true, true))
+  res.send(await User.getSafeUserData(req.jwt.login, true, true, true))
 }))
 
 router.put('/projects/:id', checkJWT(), asyncFn(async (req, res) => {

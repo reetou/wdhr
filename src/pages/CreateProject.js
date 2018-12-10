@@ -20,7 +20,7 @@ class CreateProject extends React.Component {
     return new Promise((resolve, reject) => {
       this.props.form.validateFields((err, values) => {
         if (!err) {
-          console.log('Received values of form: ', values);
+          console.log('Resolving with values', values)
           resolve(values)
         }
         reject(err)
@@ -32,7 +32,9 @@ class CreateProject extends React.Component {
     e.preventDefault()
     try {
       const data = await this.validate()
-      await this.props.project.create(data)
+      if (data.type && !Array.isArray(data.type)) data.type = [data.type]
+      console.log('Going with data', data)
+      await this.props.project.create(_.cloneDeep(data))
     } catch (e) {
       console.log('Err', e)
       const validationErr = _.at(e, 'response.data.err')[0]
@@ -56,7 +58,7 @@ class CreateProject extends React.Component {
           <FormItem>
             {getFieldDecorator('name', {
               rules: [
-                { required: false, message: 'Название обязательно' },
+                { required: true, message: 'Название обязательно' },
                 { max: 15, message: 'Не больше 15 символов' },
                 { whitespace: true, message: 'Без пробелов' }
               ],
@@ -67,7 +69,7 @@ class CreateProject extends React.Component {
           <FormItem>
             {getFieldDecorator('title', {
               rules: [
-                { required: false, message: 'Поле пустое' },
+                { required: true, message: 'Поле пустое' },
                 { max: 70, message: 'Не больше 70 символов' },
               ],
             })(
@@ -77,7 +79,7 @@ class CreateProject extends React.Component {
           <FormItem>
             {getFieldDecorator('description', {
               rules: [
-                { required: false, message: 'Поле пустое' },
+                { required: true, message: 'Поле пустое' },
                 { max: 1000, message: 'Не больше 1000 символов' },
               ],
             })(
@@ -87,12 +89,20 @@ class CreateProject extends React.Component {
           <FormItem>
             {getFieldDecorator('type', {
               rules: [
-                { required: false, message: 'Выбери тип' },
+                { required: true, message: 'Выбери хотя бы одно направление' },
               ],
             })(
-              <Select defaultValue="1" style={{ width: 120 }}>
-                <Option value="1">FRONTEND</Option>
-                <Option value="2">BACKEND</Option>
+              <Select
+                mode="multiple"
+                style={{ width: '100%' }}
+                placeholder="Направления"
+                defaultValue={[]}
+                onChange={val => console.log('Val', val)}
+              >
+                {
+                  [{ name: 'FRONTEND', value: 1 }, { name: 'BACKEND', value: 2 }]
+                    .map(i => <Option key={i.value}>{i.name}</Option>)
+                }
               </Select>
             )}
           </FormItem>
@@ -100,7 +110,13 @@ class CreateProject extends React.Component {
             <div>Бюджет</div>
             {getFieldDecorator('budget', {
               rules: [
-                { required: false, message: 'Поле пустое' },
+                { validator: (rule, value, cb) => {
+                    const valid = Number(value) >= 0 && Number(value) <= 3000
+                    console.log('value', value)
+                    cb(valid ? [] : [new Error('Минимум 0 даларов и максимум 3000')])
+                    return valid
+                  } },
+                { required: true, message: 'Поле пустое' },
               ],
             })(
               <InputNumber
@@ -114,7 +130,12 @@ class CreateProject extends React.Component {
             <div>Сроки (в днях)</div>
             {getFieldDecorator('estimates', {
               rules: [
-                { required: false, message: 'Поле пустое' },
+                { validator: (rule, value, cb) => {
+                    const valid = Number(value) >= 1
+                    cb(valid ? [] : [new Error('Минимум 1 день')])
+                    return valid
+                  } },
+                { required: true, message: 'Поле пустое' },
               ],
             })(
               <InputNumber

@@ -13,6 +13,7 @@ class User {
   }
 
   async get(login) {
+    if (!login) return false
     const user = await db.findInHash('users', sha1(login))
     if (!user) return false
     return JSON.parse(user)

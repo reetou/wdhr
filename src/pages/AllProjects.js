@@ -60,9 +60,9 @@ export default class AllProjects extends React.Component {
               <List.Item.Meta
                 avatar={<Avatar src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png" />}
                 title={<a>{item.name}</a>}
-                description={item.title}
+                description={item.type.join(', ')}
               />
-              <div>{item.description.substring(0, 100)}...</div>
+              <div>{item.title.substring(0, 100)}...</div>
             </List.Item>
           )}
         >
