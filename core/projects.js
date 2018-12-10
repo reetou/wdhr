@@ -3,6 +3,7 @@ const sha1 = require('sha1')
 const JWT = require('jsonwebtoken')
 const { AUTH } = require('./config')
 const shortID = require('shortid')
+const _ = require('lodash')
 const logError = require('debug')('projects:error')
 
 class Projects {
@@ -18,42 +19,69 @@ class Projects {
       title: 'string',
       estimates: 'number',
       type: 'number',
+      is_public: 'boolean',
       budget: 'number'
     }
+    this.ALLOWED_EDIT_PROPS = ['is_public', 'name', 'description', 'title', 'budget']
   }
 
-  async get(asc = true) {
-    const projects = await db.findAllInHash('projects')
-    if (asc) return _.sortBy(_.map(projects, p => JSON.parse(p)), 'date')
-    return _.sortBy(_.map(projects, p => JSON.parse(p)), 'date').reverse()
+  async get(cursor = 0, asc = true) {
+    const data = await db.scanHash('projects', cursor)
+    console.log('PROJECT SCAN', data)
+    const updatedCursor = data[0]
+    let projects = data[1].filter(v => typeof JSON.parse(v) === 'object')
+    projects = await Promise.all(_.map(projects, async p => {
+      const project = JSON.parse(p)
+      return {
+        ...project,
+        rating: await this.getRating(project.id)
+      }
+    }))
+    projects = _.sortBy(projects, 'date')
+    if (!asc) projects = projects.reverse()
+    return { projects, cursor: updatedCursor }
+  }
+
+  async getUserProjects(login) {
+    let projects = await db.findAllInHash(`projects_${login}`)
+    if (!projects) return []
+    return await Promise.all(_.map(projects, async p => {
+      const project = JSON.parse(p)
+      return {
+        ...project,
+        rating: await this.getRating(project.id)
+      }
+    }))
   }
 
   async uprate(id, login) {
+    if (!id || !login) return
     await db.addToHash(`project_${id}_rating`, login, JSON.stringify({
       date: Date.now(),
       login,
     }))
+    await db.addToHash(`project_${login}_rated`, id, JSON.stringify({ date: Date.now(), id }))
     return await db.getHashLen(`project_${id}_rating`)
   }
 
-  async delete(id) {
-    await db.removeFromHash('projects', id)
-    return true
-  }
-
   async downrate(id, login) {
+    if (!id || !login) return
     await db.removeFromHash(`project_${id}_rating`, login)
+    await db.removeFromHash(`project_${login}_rated`, id)
     return await db.getHashLen(`project_${id}_rating`)
   }
 
   async getRating(id) {
+    console.log('Getting rating for id', id)
     return await db.getHashLen(`project_${id}_rating`)
   }
 
-  async getById(id, safe = true) {
+  async getById(id, login, checkOwner = false, checkPrivacy = false, admin = false) {
     let project = await db.findInHash('projects', id)
     if (!project) return false
     project = JSON.parse(project)
+    if (checkOwner && project.author !== login) return false
+    if (checkPrivacy && !project.is_public && project.author !== login && !admin) return false
     // Add unsafe props
     return project
   }
@@ -113,10 +141,45 @@ class Projects {
     return true
   }
 
-  async create(name, description, title, estimates, type, author, budget) {
+  async edit(id, login, data) {
+    let project = await this.getById(id, login, true)
+    const oldEdit = JSON.stringify(project)
+    if (!project) return false
+    _.forEach(data, (value, key) => {
+      if (this.ALLOWED_EDIT_PROPS.includes(key)) project[key] = value
+    })
+    const newEdit = JSON.stringify(project)
+    if (oldEdit === newEdit) {
+      console.log(`Project not edited, login: ${login}, id: ${id}`)
+    }
+    const result = await this.save(project)
+    if (!result) return false
+    return result
+  }
+
+  async save(project) {
+    if (!project.id || !project.author) return false
+    await db.addToHash(`projects_${project.author}`, project.id, JSON.stringify(project))
+    await db.addToHash(`projects`, project.id, JSON.stringify(project))
+    await db.addToHash(`projects_edits`, `id_${project.id}_${Date.now()}`, JSON.stringify({ date: Date.now(), project }))
+    return project
+  }
+
+  async delete(id, login) {
+    let project = await db.findInHash('projects', id)
+    if (!project) return false
+    project = JSON.parse(project)
+    if (project.author !== login) return false
+    await db.removeFromHash('projects', id)
+    await db.removeFromHash(`projects_${login}`, id)
+    return true
+  }
+
+  async create(name, description, title, estimates, type, author, budget, is_public) {
     const count = await db.getHashLen('projects')
     const id = Number(count) + 1
-    await db.addToHash('projects', id, JSON.stringify({
+    const data = {
+      id,
       name,
       description,
       title,
@@ -124,9 +187,14 @@ class Projects {
       type,
       created: Date.now(),
       author,
-      budget
-    }))
-    return await this.getById(id)
+      budget,
+      is_public
+    }
+    await db.addToHash(`projects_${author}`, id, JSON.stringify(data))
+    if (is_public) {
+      await db.addToHash('projects', id, JSON.stringify(data))
+    }
+    return await this.getById(id, author)
   }
 
 }

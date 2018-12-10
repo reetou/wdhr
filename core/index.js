@@ -16,6 +16,21 @@ let server
 
 const start = function() {
 
+  app.use((req, res, next) => {
+
+    const allowed = ['http://localhost:1234']
+    if (allowed.indexOf(req.headers.origin) > -1) {
+      res.header('Access-Control-Allow-Origin', req.headers.origin)
+      res.header('Access-Control-Allow-Credentials', true)
+      res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS')
+      if (req.method === 'OPTIONS') {
+        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override, Cookie, Cookies, Token')
+      }
+    }
+
+    next()
+
+  })
   app.use(cookieParser(config.AUTH.cookieSign))
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
@@ -23,18 +38,10 @@ const start = function() {
     cookie: config.AUTH.jwtCookieName
   }))
   app.use('/api/auth', require('./api/auth'))
+  app.use('/api/user', require('./api/user'))
+  app.use('/api/projects', require('./api/projects'))
+  app.use('/api/project', require('./api/project_participate'))
 
-  app.use((req, res, next) => {
-
-    res.header('Access-Control-Allow-Origin', req.headers.origin)
-    res.header('Access-Control-Allow-Credentials', true)
-    if (req.method === 'OPTIONS') {
-    	res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override, Cookie, Cookies, Token')
-    }
-
-    next()
-
-  })
   app.use((err, req, res, next) => {
     if (res.headersSent) return next(err)
     logStartupMain(`Startup error`, err)

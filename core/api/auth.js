@@ -6,19 +6,21 @@ const JWT = require('jsonwebtoken')
 const db = require('../db')
 const { AUTH } = require('../config')
 const User = require('../user')
-const { asyncFn, checkForFields, checkJWT } = require('../middleware')
+const { asyncFn, checkForFields, checkJWT, checkIfLoginUnique, uniqueFields } = require('../middleware')
 
-router.post('/register', checkForFields({ nickname: 'string', password: 'string', login: 'string' }), asyncFn(async (req, res) => {
+router.post('/register', checkForFields({ nickname: 'string', password: 'string', login: 'string' }), checkIfLoginUnique(), uniqueFields(['nickname', 'login']), asyncFn(async (req, res) => {
   const data = req.body
+  console.log('Received register')
   const result = await User.register(data.login, data.nickname, data.password)
   if (!result) return res.status(500).send({ err: `Internal error occurred` })
+  console.log('Register ok')
   res.send(result)
 }))
 
 router.post('/login', checkForFields({ login: 'string', password: 'string' }), asyncFn(async (req, res) => {
   const data = req.body
   const user = await User.checkAuth(data.login, data.password)
-  if (!user) return res.status(401).send({ err: `Wrong login&password pair` })
+  if (!user) return res.status(401).send({ err: `Неправильная пара логин-пароль` })
   const freshToken = await User.processSession(data.login)
   res.send({
     ...await User.getSafeUserData(data.login),

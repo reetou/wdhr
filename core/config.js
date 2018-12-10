@@ -13,7 +13,7 @@ if (DEBUG) {
 
 
 
-  AUTH.jwtExpireTime = '1h'
+  AUTH.jwtExpireTime = '1m'
   AUTH.jwtSecret = 'alone.elephant.qweunfold.flash.column.panther.sogfhdgsflar.federal.initiasdal'
   AUTH.jwtAdminSecret = 'london.asddsfg.dog.dar.ya.cannazxcvcot.resigfhfghstance.submission.interasdsfgfdactive.absolute'
   AUTH.jwtCookieName = 'elephant'

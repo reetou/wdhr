@@ -1,6 +1,7 @@
 const db = require('./db')
 const sha1 = require('sha1')
 const JWT = require('jsonwebtoken')
+const _ = require('lodash')
 const { AUTH } = require('./config')
 const shortID = require('shortid')
 const logUserError = require('debug')('user:error')
@@ -17,26 +18,31 @@ class User {
     return JSON.parse(user)
   }
 
-  async getSafeUserData(login) {
+  async getRatedProjects(login) {
+    const rated = await db.findAllInHash(`project_${login}_rated`)
+    return _.map(rated, v => JSON.parse(v).id)
+  }
+
+  async getSafeUserData(login, withToken = false, withRatedProjects = false) {
     const user = await this.get(login)
     if (!user) return false
-    return {
-      login: user.login,
-      nickname: user.nickname,
-    }
+    if (!withToken) delete user.token
+    if (withRatedProjects) user.rated = await this.getRatedProjects(login)
+    delete user.sessions
+    delete user.password
+    return user
   }
 
   async register(login, nickname, password) {
     try {
+      console.log('login nick pass', login, nickname, password)
       const refresh = sha1(shortID.generate())
       const regularUser = {
-        nickname: data.nickname,
-        login: data.login,
+        nickname: nickname,
+        login: login,
         refresh,
       }
-      const token = JWT.sign({
-        ...regularUser
-      }, AUTH.jwtSecret, { expiresIn: '2m' })
+      const token = JWT.sign(regularUser, AUTH.jwtSecret, { expiresIn: AUTH.jwtExpireTime })
       const sessions = []
       sessions.push({
         refresh,
@@ -68,7 +74,7 @@ class User {
   async checkAuth(login, password) {
     const user = await this.get(login)
     if (!user) return false
-    return sha1(password) === sha1(user.password)
+    return sha1(password) === user.password
   }
 
   async processSession(login) {
@@ -85,7 +91,7 @@ class User {
       nickname: user.nickname,
       login: user.login,
       refresh,
-    }, AUTH.jwtSecret, { expiresIn: '2m' })
+    }, AUTH.jwtSecret, { expiresIn: AUTH.jwtExpireTime })
     user.token = token
     await this.save(user)
     return token
