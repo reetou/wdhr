@@ -4,6 +4,7 @@ const logRedis = require('debug')('startup:redis')
 const PRODUCTION = process.env.NODE_ENV === 'production'
 const host = REDIS.host ? REDIS.host.substr(6) : 'Production'
 const REDIS_MOCK = {
+  ...REDIS,
 	host,
 	password: 'REDACTED',
 	name: 'REDACTED'
