@@ -6,6 +6,8 @@ const cors = require('cors')
 const axios = require('axios')
 const config = require('./config')
 const logStartupMain = require('debug')('startup:main')
+const passport = require('passport');
+const GitHubStrategy = require('passport-github2').Strategy;
 
 
 const DEBUG = process.env.NODE_ENV !== 'production'
@@ -18,7 +20,7 @@ const start = function() {
 
   app.use((req, res, next) => {
 
-    const allowed = ['http://localhost:1234']
+    const allowed = ['http://localhost:1234', 'http://localhost:80', 'http://kokoro.codes']
     if (allowed.indexOf(req.headers.origin) > -1) {
       res.header('Access-Control-Allow-Origin', req.headers.origin)
       res.header('Access-Control-Allow-Credentials', true)
@@ -34,6 +36,44 @@ const start = function() {
   app.use(cookieParser(config.AUTH.cookieSign))
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
+
+  passport.serializeUser(function(user, done) {
+    console.log('At serialize', user)
+    done(null, user);
+  });
+
+  passport.deserializeUser(function(obj, done) {
+    console.log('At deserialize', obj)
+    done(null, obj);
+  });
+
+  // Use the GitHubStrategy within Passport.
+  //   Strategies in Passport require a `verify` function, which accept
+  //   credentials (in this case, an accessToken, refreshToken, and GitHub
+  //   profile), and invoke a callback with a user object.
+  passport.use(new GitHubStrategy({
+      clientID: config.AUTH.GH_CLIENT_ID,
+      clientSecret: config.AUTH.GH_CLIENT_SECRET,
+      callbackURL: "http://localhost:4000/api/auth/github/callback"
+    },
+    function(accessToken, refreshToken, profile, done) {
+      // asynchronous verification, for effect...
+      console.log(`accessToken: ${accessToken}`)
+      console.log(`refreshToken: ${refreshToken}`)
+      console.log(`profile:`, profile)
+      process.nextTick(function () {
+
+        // To keep the example simple, the user's GitHub profile is returned to
+        // represent the logged-in user.  In a typical application, you would want
+        // to associate the GitHub account with a user record in your database,
+        // and return that user instead.
+        return done(null, profile);
+      });
+    }
+  ));
+
+  app.use(passport.initialize());
+  app.use(passport.session());
   app.use(jwt.init(config.AUTH.jwtSecret, {
     cookie: config.AUTH.jwtCookieName
   }))

@@ -6,7 +6,26 @@ const JWT = require('jsonwebtoken')
 const db = require('../db')
 const { AUTH } = require('../config')
 const User = require('../user')
+const passport = require('passport')
 const { asyncFn, checkForFields, checkJWT, checkIfLoginUnique, uniqueFields } = require('../middleware')
+
+router.get('/github',
+  passport.authenticate('github', { scope: [ 'user:email' ] }),
+  function(req, res){
+    // The request will be redirected to GitHub for authentication, so this
+    // function will not be called.
+  });
+
+// GET /auth/github/callback
+//   Use passport.authenticate() as route middleware to authenticate the
+//   request.  If authentication fails, the user will be redirected back to the
+//   login page.  Otherwise, the primary route function will be called,
+//   which, in this example, will redirect the user to the home page.
+router.get('/github/callback',
+  passport.authenticate('github', { failureRedirect: '/login' }),
+  function(req, res) {
+    res.redirect('/');
+  });
 
 router.post('/register', checkForFields({ nickname: 'string', password: 'string', login: 'string' }), checkIfLoginUnique(), uniqueFields(['nickname', 'login']), asyncFn(async (req, res) => {
   const data = req.body

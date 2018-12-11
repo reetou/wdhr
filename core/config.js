@@ -11,6 +11,9 @@ if (DEBUG) {
   REDIS.name = process.env.REDIS_NAME
   REDIS.password = process.env.REDIS_PASSWORD
 
+  AUTH.GH_CLIENT_ID = process.env.GH_CLIENT_ID
+  AUTH.GH_CLIENT_SECRET = process.env.GH_CLIENT_SECRET
+
 
 
   AUTH.jwtExpireTime = '1m'
