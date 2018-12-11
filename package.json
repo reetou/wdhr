@@ -1,6 +1,7 @@
 {
   "scripts": {
     "back": "DEBUG=startup:*,auth:*,middleware:*,user:* nodemon core/index.js",
+    "prod": "DEBUG=startup:*,auth:*,middleware:*,user:* pm2 start core/index.js",
     "start": "parcel index.html"
   },
   "dependencies": {
