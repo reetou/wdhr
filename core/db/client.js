@@ -15,7 +15,7 @@ const client = new Redis(REDIS)
 client.on("error", function (err) {
 	logRedis(
 	    `Error in Redis connection (PRODUCTION??? ${PRODUCTION ? 'yes' : 'NOPE, DEBUG PROBABLY'})`,
-		REDIS_MOCK, err.message,
+		REDIS, err.message,
         DEV)
 })
 
