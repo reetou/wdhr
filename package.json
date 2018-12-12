@@ -2,7 +2,8 @@
   "scripts": {
     "back": "DEBUG=startup:*,auth:*,middleware:error,user:*,article:*,projects:* nodemon core/index.js",
     "prod": "DEBUG=startup:*,auth:*,middleware:error,user:*,article:*,projects:* pm2 start core/index.js",
-    "start": "parcel index.html"
+    "start": "parcel index.html",
+    "build": "NODE_ENV=production parcel build index.html --no-minify"
   },
   "dependencies": {
     "@babel/core": "^7.0.0-0",
