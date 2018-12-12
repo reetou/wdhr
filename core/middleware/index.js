@@ -33,9 +33,9 @@ const checkForFields = (fields = {}) => {
         if (!getType(data[field], type)) return res.status(400).send({ err: `Invalid type for field ${field}, expected: ${type}, received: ${data[field]}` })
       }
     } catch (e) {
-      console.log('Error at middleware')
+      console.log('Error at middleware', e)
       logMiddlewareError(`Err at check for fields ${Object.keys(fields)} by slug middleware, params.id: ${req.params.id}`, e)
-      return res.send({ err: `Internal err, aborting` })
+      return res.status(500).send({ err: `Internal err, aborting` })
     }
     return next()
   })
@@ -50,7 +50,7 @@ const checkIfLoginUnique = () => {
     } catch (e) {
       console.log('Error at middleware check if login unique')
       logMiddlewareError(`Err at check if login unique by slug middleware, params.id: ${req.params.id}`, e)
-      return res.send({ err: `Internal err, aborting` })
+      return res.status(500).send({ err: `Internal err, aborting` }))
     }
     return next()
   })
@@ -68,7 +68,7 @@ const uniqueFields = (fields = []) => {
     } catch (e) {
       console.log('Error at middleware check if login unique')
       logMiddlewareError(`Err at check if login unique by slug middleware, params.id: ${req.params.id}`, e)
-      return res.send({ err: `Internal err, aborting` })
+      return res.status(500).send({ err: `Internal err, aborting` })
     }
     return next()
   })
@@ -87,7 +87,7 @@ const checkJWT = (ignoreExpire = false) => {
     } catch (e) {
       logMiddlewareError(`Err at check jwt by middleware`, e)
 			console.log('Err at check jwt', e)
-      return res.send({ err: `Internal err, aborting` })
+      return res.status(500).send({ err: `Internal err, aborting` })
     }
     return next()
   })
