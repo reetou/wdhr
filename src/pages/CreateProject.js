@@ -1,30 +1,27 @@
 import React from 'react'
 import { observer, inject } from 'mobx-react'
 import CreateProjectForm from '../ui/CreateProjectForm'
-import { CSSTransitionGroup, TransitionGroup } from 'react-transition-group'
+import { Link, withRouter } from 'react-router-dom'
 import {
-  Layout
+  Layout, Button, Icon
 } from 'antd'
 import BookAppearAnimation from "../ui/BookAppearAnimation"
 const _ = require('lodash')
 @inject('auth', 'project')
 @observer
+@withRouter
 export default class CreateProject extends React.Component {
 
   render() {
-    const { auth, project } = this.props
+    const { auth, project, history } = this.props
     return (
       <Layout style={{ backgroundColor: '#fff', padding: 24 }}>
-        { !project.creating && <h2>Создаем проект</h2>}
+        { !project.creating && <div style={{ display: 'flex', marginBottom: 15, alignItems: 'center' }}>
+          <Icon onClick={() => history.push('/myprojects')} type="left-square" theme="twoTone" style={{ fontSize: 24, width: 25, marginRight: 10, cursor: 'pointer' }} />
+          <h2 style={{ marginBottom: 0 }}>Создаем проект</h2>
+        </div>}
         { auth.error && <h4 style={{ color: 'red' }}>{auth.error}</h4> }
-        <CSSTransitionGroup
-          transitionName="example"
-          transitionAppear={true}
-          transitionAppearTimeout={500}
-          transitionEnter={false}
-          transitionLeave={false}>
-          <CreateProjectForm/>
-        </CSSTransitionGroup>
+        <CreateProjectForm/>
       </Layout>
     )
   }

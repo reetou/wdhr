@@ -76,7 +76,7 @@ class Projects {
   }
 
   async getById(id, login, checkOwner = false, checkPrivacy = false, admin = false) {
-    let project = await db.findInHash('projects', id)
+    let project = await db.findInHash(`projects_${login}`, id)
     if (!project) return false
     project = JSON.parse(project)
     if (checkOwner && project.author !== login) return false
@@ -161,7 +161,11 @@ class Projects {
     const now = Date.now()
     if (!project.id || !project.author) return false
     await db.addToHash(`projects_${project.author}`, project.id, JSON.stringify(project))
-    await db.addToHash(`projects`, project.id, JSON.stringify(project))
+    if (project.is_public) {
+      await db.addToHash(`projects`, project.id, JSON.stringify(project))
+    } else {
+      await db.removeFromHash(`projects`, project.id)
+    }
     await db.addToHash(`projects_edits`, `id_${project.id}_${now}`, JSON.stringify({ date: now, project }))
     return project
   }
@@ -193,7 +197,9 @@ class Projects {
     }
     console.log('Triggered create', author)
     await db.addToHash(`projects_${author}`, id, JSON.stringify(data))
-    await db.addToHash('projects', id, JSON.stringify(data))
+    if (data.is_public) {
+      await db.addToHash('projects', id, JSON.stringify(data))
+    }
     return await this.getById(id, author)
   }
 

@@ -4,6 +4,8 @@ import * as mobxUtils from 'mobx-utils'
 import axios from 'axios'
 import * as _ from 'lodash'
 
+const sleep = time => new Promise(resolve => setTimeout(() => resolve(), time))
+
 export default class ProjectStore {
   constructor(app, auth) {
     this.app = app
@@ -105,6 +107,7 @@ export default class ProjectStore {
   @action.bound
   loadUserProjects() {
     this.loading = true
+    this.userProjects = []
     const obs = Rx.Observable.fromPromise(this.app.axios({
       url: `${this.app.API_HOST}/api/user/projects`,
       method: 'GET',
@@ -112,6 +115,7 @@ export default class ProjectStore {
         Token: this.auth.user.token
       },
     }))
+      .delay(2000)
       .finally(() => {
         this.loading = false
       })
@@ -153,10 +157,8 @@ export default class ProjectStore {
       .subscribe(
         res => {
           this.projects = this.projects.concat(res.data.projects)
-          if (res.data.cursor) {
-            this.cursor = res.data.cursor
-            this.hasMore = Boolean(Number(res.data.cursor))
-          }
+          this.cursor = res.data.cursor
+          this.hasMore = Boolean(Number(res.data.cursor))
         },
         e => {
           const validationErr = _.at(e, 'response.data.err')[0]

@@ -1,17 +1,5 @@
 import React from 'react'
-import { observable } from 'mobx'
 import { observer, inject } from 'mobx-react'
-import * as Rx from 'rxjs/Rx'
-import {
-  delay,
-  switchMapTo,
-  concatAll,
-  count,
-  scan,
-  withLatestFrom,
-  share
-} from 'rxjs/operators';
-import * as mobxUtils from 'mobx-utils'
 import {
   Layout, Menu, Breadcrumb, Icon, Button
 } from 'antd';
@@ -19,9 +7,8 @@ import { Link } from "react-router-dom"
 import BookAppearAnimation from "./BookAppearAnimation"
 import BookOpenAnimation from "./BookOpenAnimation"
 const {
-  Header, Content, Footer, Sider,
+  Sider,
 } = Layout;
-const SubMenu = Menu.SubMenu;
 
 
 @inject('app', 'auth')

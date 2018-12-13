@@ -5,13 +5,18 @@ import Sider from '../ui/Sider'
 import {
   Layout, Menu, Breadcrumb, Icon, Button
 } from 'antd';
+import { withRouter } from 'react-router-dom'
 
-@inject('app')
+@inject('app', 'auth')
+@withRouter
 @observer
 export default class Profile extends React.Component {
 
-  componentDidMount() {
+  async componentDidMount() {
     this.props.app.header = 'Профиль'
+    if (!this.props.app.axios) await this.props.auth.initAxios()
+    const result = await this.props.auth.initLoginFromStorage()
+    if (result) await this.props.history.push('/profile')
   }
 
   render() {

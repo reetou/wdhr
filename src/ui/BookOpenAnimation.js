@@ -2,6 +2,16 @@ import React from 'react'
 import { observable } from 'mobx'
 import { observer, inject } from 'mobx-react'
 import {
+  delay,
+  switchMapTo,
+  concatAll,
+  count,
+  scan,
+  withLatestFrom,
+  switchMap,
+  share
+} from 'rxjs/operators';
+import {
   Form, Icon, Input, Button, Checkbox, Select, InputNumber, Layout
 } from 'antd'
 import * as Rx from "rxjs/Rx"
@@ -36,22 +46,37 @@ export default class BookOpenAnimation extends React.Component {
 
   componentDidMount() {
     const signal = new Rx.Subject()
-    const requestAnimationFrame$ = Rx.Observable
+
+    const reset = val => signal.next(val)
+
+    const secondAnimation = Rx.Observable
       .defer(() => Rx.Observable
         .timer(0, 90)
         .takeUntil(signal)
         .repeat()
-      );
+      )
 
-    const reset = () => signal.next()
-
+    const requestAnimationFrame$ = Rx.Observable
+      .defer(() => Rx.Observable
+        .timer(0, 90)
+        .takeUntil(signal)
+      )
     requestAnimationFrame$
       .subscribe((i) => {
         const item = i + 1
-        if (item >= 20) return reset()
-        console.log(`I AT SUBSCRIBE RAVNO ${item}`)
+        if (item >= 16) {
+          secondAnimation
+            .subscribe((i) => {
+              const item = i + 5
+              if (item >= 16) return reset()
+              this.x = item
+            });
+          switchMap(() => secondAnimation)
+          return reset()
+        }
         this.x = item
       });
+
   }
 
   render() {

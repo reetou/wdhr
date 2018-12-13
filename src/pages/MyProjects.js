@@ -5,14 +5,15 @@ import { Link, withRouter } from 'react-router-dom'
 import {
   Icon, Input, Checkbox, Button, List, Spin, Avatar
 } from 'antd';
+import BookOpenAnimation from "../ui/BookOpenAnimation"
 const _ = require('lodash')
 
 
-const IconText = ({ type, text, rated, onClick }) => (
-  <span style={onClick ? { color: '#40a9ff' } : {}} onClick={onClick}>
+const IconText = ({ type, text, rated, onClick, animate }) => (
+  <div style={onClick ? { color: '#40a9ff' } : {}} onClick={onClick}>
     <Icon type={type} style={{ marginRight: 8 }} />
     {text}
-  </span>
+  </div>
 );
 
 @inject('app', 'auth', 'project')
@@ -65,7 +66,7 @@ export default class MyProjects extends React.Component {
         >
           {project.loading ? (
             <div style={{ textAlign: 'center', marginTop: 15 }}>
-              <Spin />
+              <BookOpenAnimation/>
             </div>
           ) : null}
         </List>
