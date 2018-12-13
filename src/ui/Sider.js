@@ -1,10 +1,23 @@
 import React from 'react'
 import { observable } from 'mobx'
 import { observer, inject } from 'mobx-react'
+import * as Rx from 'rxjs/Rx'
+import {
+  delay,
+  switchMapTo,
+  concatAll,
+  count,
+  scan,
+  withLatestFrom,
+  share
+} from 'rxjs/operators';
+import * as mobxUtils from 'mobx-utils'
 import {
   Layout, Menu, Breadcrumb, Icon, Button
 } from 'antd';
 import { Link } from "react-router-dom"
+import BookAppearAnimation from "./BookAppearAnimation"
+import BookOpenAnimation from "./BookOpenAnimation"
 const {
   Header, Content, Footer, Sider,
 } = Layout;
@@ -23,7 +36,9 @@ export default class UISider extends React.Component {
         collapsed={app.collapsed}
         trigger={null}
       >
-        <div className="logo" />
+        <div className="logo">
+          <BookOpenAnimation/>
+        </div>
         <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline">
           <Menu.Item key={'1'}>
             <Link to={'/profile'} onClick={() => this.props.app.header = 'Профиль'}>

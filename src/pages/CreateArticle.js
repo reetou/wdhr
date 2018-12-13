@@ -12,7 +12,6 @@ const TextArea = Input.TextArea
 const Option = Select.Option
 
 @inject('app', 'auth', 'article')
-@withRouter
 @observer
 class CreateArticle extends React.Component {
 

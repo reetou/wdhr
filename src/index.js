@@ -16,6 +16,7 @@ import MyArticles from "./pages/MyArticles"
 import AllArticles from "./pages/AllArticles"
 import CreateProject from "./pages/CreateProject"
 import CreateArticle from "./pages/CreateArticle"
+import './main.css'
 
 const stores = createStores()
 

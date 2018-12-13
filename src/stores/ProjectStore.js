@@ -17,6 +17,7 @@ export default class ProjectStore {
   @observable hasMore = true
   @observable loading = false
   @observable error = ''
+  @observable creating = false
 
   @computed get
   sortedProjects() {
@@ -31,6 +32,7 @@ export default class ProjectStore {
   @action.bound
   create(data) {
     this.loading = true
+    this.creating = true
     const obs = Rx.Observable.fromPromise(this.app.axios({
       url: `${this.app.API_HOST}/api/projects`,
       method: 'POST',
@@ -42,8 +44,11 @@ export default class ProjectStore {
         is_public: data.is_public || false,
       }
     }))
+      .delay(2000)
       .finally(() => {
         this.loading = false
+        this.creating = false
+        console.log('At finally, set creating to false', this.creating)
       })
       .subscribe(v => console.log('V???', v), err => console.log('Error at create project', err), (d) => console.log('complete', d))
   }

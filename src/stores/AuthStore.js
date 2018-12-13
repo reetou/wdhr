@@ -137,7 +137,6 @@ export default class AuthStore {
 
   @action.bound
   async initLoginFromStorage() {
-    console.log('App axios', this.app.axios)
     const token = localStorage.getItem('token')
     if (!token) {
       this.loggedIn = false
