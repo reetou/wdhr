@@ -36,9 +36,7 @@ export default class UISider extends React.Component {
         collapsed={app.collapsed}
         trigger={null}
       >
-        <div className="logo">
-          <BookOpenAnimation/>
-        </div>
+        <div className="logo" />
         <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline">
           <Menu.Item key={'1'}>
             <Link to={'/profile'} onClick={() => this.props.app.header = 'Профиль'}>
