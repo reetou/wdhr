@@ -1,6 +1,5 @@
 const db = require('./db')
 const sha1 = require('sha1')
-const JWT = require('jsonwebtoken')
 const { AUTH } = require('./config')
 const shortID = require('shortid')
 const _ = require('lodash')

@@ -1,10 +1,8 @@
-const JWT = require('jsonwebtoken')
 const { AUTH } = require('../config')
 const logMiddlewareError = require('debug')('middleware:error')
 const _ = require('lodash')
 const User = require('../user')
 
-const DEBUG = process.env.NODE_ENV !== 'production'
 const TEST = process.env.TEST === 'true'
 
 const asyncFn = fn => (req, res, next) => {

@@ -1,9 +1,6 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
-const jwt = require('jwt-express')
-const cors = require('cors')
-const axios = require('axios')
 const config = require('./config')
 const session = require('express-session')
 const User = require('./user')
@@ -15,7 +12,6 @@ const { asyncFn } = require('./middleware')
 const RedisStore = require('connect-redis')(session);
 
 
-const DEBUG = process.env.NODE_ENV !== 'production'
 const TEST = process.env.TEST === 'true'
 const app = express()
 let server
@@ -82,9 +78,6 @@ const start = function() {
 
   app.use(passport.initialize());
   app.use(passport.session());
-  app.use(jwt.init(config.AUTH.jwtSecret, {
-    cookie: config.AUTH.jwtCookieName
-  }))
   app.use('/api/auth', require('./api/auth'))
   app.use('/api/user', require('./api/user'))
   app.use('/api/projects', require('./api/projects'))
@@ -106,11 +99,6 @@ const start = function() {
 
 
 async function init() {
-
-  if (DEBUG) {
-    return start()
-  }
-
   start()
 
 }

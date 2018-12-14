@@ -2,7 +2,6 @@ const express = require("express")
 const router = express.Router()
 const sha1 = require('sha1')
 const shortID = require('shortid')
-const JWT = require('jsonwebtoken')
 const db = require('../db')
 const { AUTH } = require('../config')
 const _ = require('lodash')
@@ -17,7 +16,6 @@ router.get('/', asyncFn(async (req, res) => {
 
 router.post('/', checkAuth(), checkForFields(Projects.CREATE_PROPS), asyncFn(async (req, res) => {
   const data = req.body
-  console.log('Req jwt at create project', req.jwt)
   const result = await Projects.create(data.name, data.description, data.title, data.estimates, data.type, req.user.username, data.budget, data.is_public)
   if (!result) res.status(500).send({ err: `Не могу создать проект` })
   res.send(result)
