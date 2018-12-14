@@ -10,7 +10,8 @@ const passport = require('passport');
 const GitHubStrategy = require('passport-github2').Strategy;
 const { asyncFn } = require('./middleware')
 const RedisStore = require('connect-redis')(session);
-
+const DEBUG = process.env.NODE_ENV !== 'production'
+const REDIRECT_URL = DEBUG ? 'http://localhost:4000' : 'http://kokoro.codes'
 
 const TEST = process.env.TEST === 'true'
 const app = express()
@@ -22,7 +23,7 @@ const start = function() {
 
   app.use((req, res, next) => {
 
-    const allowed = ['http://localhost:1234', 'http://localhost:80', 'http://kokoro.codes']
+    const allowed = DEBUG ? ['http://localhost:1234', 'http://localhost:80', 'http://kokoro.codes'] : ['http://kokoro.codes']
     console.log(`ORIGIN: ${req.headers.origin}`)
     if (allowed.indexOf(req.headers.origin) > -1) {
       res.header('Access-Control-Allow-Origin', req.headers.origin)
@@ -63,7 +64,7 @@ const start = function() {
   passport.use(new GitHubStrategy({
       clientID: config.AUTH.GH_CLIENT_ID,
       clientSecret: config.AUTH.GH_CLIENT_SECRET,
-      callbackURL: "http://localhost:4000/api/auth/github/callback"
+      callbackURL: `${REDIRECT_URL}/api/auth/github/callback`
     },
     async (accessToken, refreshToken, profile, done) => {
       // asynchronous verification, for effect...

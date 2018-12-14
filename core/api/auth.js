@@ -5,8 +5,10 @@ const shortID = require('shortid')
 const db = require('../db')
 const { AUTH } = require('../config')
 const User = require('../user')
+const DEBUG = process.env.NODE_ENV !== 'production'
 const passport = require('passport')
 const { asyncFn, checkForFields, checkAuth, checkIfLoginUnique, uniqueFields } = require('../middleware')
+const REDIRECT_URL = DEBUG ? 'http://localhost:1234' : 'http://kokoro.codes'
 
 router.get('/github',
   passport.authenticate('github', { scope: [ 'user:email', 'public_repo', 'read:org' ] }),
@@ -14,10 +16,10 @@ router.get('/github',
     // noop
   });
 
-router.get('/github/callback', passport.authenticate('github', { failureRedirect: 'http://localhost:1234' }), asyncFn(async (req, res) => {
+router.get('/github/callback', passport.authenticate('github', { failureRedirect: REDIRECT_URL }), asyncFn(async (req, res) => {
   console.log('Did all the shit')
   console.log(`Is authenticated`, req.isAuthenticated())
-  res.redirect('http://localhost:1234')
+  res.redirect(REDIRECT_URL)
 }));
 
 module.exports = router
