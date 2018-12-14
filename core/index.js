@@ -5,9 +5,14 @@ const jwt = require('jwt-express')
 const cors = require('cors')
 const axios = require('axios')
 const config = require('./config')
+const session = require('express-session')
+const User = require('./user')
 const logStartupMain = require('debug')('startup:main')
+const sha1 = require('sha1')
 const passport = require('passport');
 const GitHubStrategy = require('passport-github2').Strategy;
+const { asyncFn } = require('./middleware')
+const RedisStore = require('connect-redis')(session);
 
 
 const DEBUG = process.env.NODE_ENV !== 'production'
@@ -17,6 +22,7 @@ let server
 //app.use('/*', cors({origin: 'https://city.rocket-cdn.ru'}))
 
 const start = function() {
+  const db = require('./db')
 
   app.use((req, res, next) => {
 
@@ -37,14 +43,20 @@ const start = function() {
   app.use(cookieParser(config.AUTH.cookieSign))
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
+  app.use(session({
+    store: new RedisStore(config.REDIS),
+    secret: sha1('SOME.SECRT.ROCET.BA.BA.BA.BANK.ZA.KOGDA'),
+    resave: true,
+    saveUninitialized: false
+  }))
 
   passport.serializeUser(function(user, done) {
-    console.log('At serialize', user)
+    console.log('USER SERIALIZE')
     done(null, user);
   });
 
   passport.deserializeUser(function(obj, done) {
-    console.log('At deserialize', obj)
+    console.log('DESERIALIZE')
     done(null, obj);
   });
 
@@ -57,19 +69,14 @@ const start = function() {
       clientSecret: config.AUTH.GH_CLIENT_SECRET,
       callbackURL: "http://localhost:4000/api/auth/github/callback"
     },
-    function(accessToken, refreshToken, profile, done) {
+    async (accessToken, refreshToken, profile, done) => {
       // asynchronous verification, for effect...
       console.log(`accessToken: ${accessToken}`)
       console.log(`refreshToken: ${refreshToken}`)
       console.log(`profile:`, profile)
-      process.nextTick(function () {
-
-        // To keep the example simple, the user's GitHub profile is returned to
-        // represent the logged-in user.  In a typical application, you would want
-        // to associate the GitHub account with a user record in your database,
-        // and return that user instead.
-        return done(null, profile);
-      });
+      await User.register(profile._json)
+      await db.addToHash('tokens', sha1(profile._json.login), accessToken)
+      return done(null, profile)
     }
   ));
 

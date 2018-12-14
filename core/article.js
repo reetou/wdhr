@@ -68,7 +68,7 @@ class Article {
   }
   
   async getById(id, login, checkOwner = false, checkPrivacy = false, admin = false) {
-    let article = await db.findInHash('articles', id)
+    let article = await db.findInHash(`articles_${login}`, id)
     if (!article) return false
     article = JSON.parse(article)
     if (checkOwner && article.author !== login) return false
@@ -90,7 +90,9 @@ class Article {
       author,
       is_public
     }
-    await db.addToHash(`articles_${author}`, id, JSON.stringify(data))
+    if (is_public) {
+      await db.addToHash(`articles_${author}`, id, JSON.stringify(data))
+    }
     await db.addToHash('articles', id, JSON.stringify(data))
     return await this.getById(id, author)
   }
@@ -108,6 +110,7 @@ class Article {
     if (oldEdit === newEdit) {
       console.log(`article not edited, login: ${login}, id: ${id}`)
     }
+    console.log('NEW ARTICLE WILL BE', newEdit)
     const result = await this.save(article)
     if (!result) return false
     return result
@@ -117,8 +120,13 @@ class Article {
     const now = Date.now()
     if (!article.id || !article.author) return false
     await db.addToHash(`articles_${article.author}`, article.id, JSON.stringify({ ...article, lastEdit: now }))
-    await db.addToHash(`articles`, article.id, JSON.stringify({ ...article, lastEdit: now }))
+    if (article.is_public) {
+      await db.addToHash(`articles`, article.id, JSON.stringify({ ...article, lastEdit: now }))
+    } else {
+      await db.removeFromHash(`articles`, article.id)
+    }
     await db.addToHash(`articles_edits`, `id_${article.id}_${Date.now()}`, JSON.stringify({ date: now, article: { ...article, lastEdit: now } }))
+    console.log('Returning article', article)
     return article
   }
 

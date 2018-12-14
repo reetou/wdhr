@@ -23,10 +23,11 @@ const animation = {
 export default class BookAppearAnimation extends React.Component {
 
   @observable x = 0
+  requestAnimationFrame$
 
   componentDidMount() {
     const signal = new Rx.Subject()
-    const requestAnimationFrame$ = Rx.Observable
+    this.requestAnimationFrame$ = Rx.Observable
       .defer(() => Rx.Observable
         .timer(0, 90)
         .takeUntil(signal)
@@ -35,13 +36,18 @@ export default class BookAppearAnimation extends React.Component {
 
     const reset = () => signal.next()
 
-    requestAnimationFrame$
+    this.requestAnimationFrame$ = this.requestAnimationFrame$
       .subscribe((i) => {
         const item = i + 1
         if (item >= 10) return reset()
         console.log(`I AT SUBSCRIBE RAVNO ${item}`)
         this.x = item
       });
+  }
+
+
+  componentWillUnmount() {
+    if (this.requestAnimationFrame$) this.requestAnimationFrame$.unsubscribe()
   }
 
   render() {

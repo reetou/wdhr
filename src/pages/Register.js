@@ -51,7 +51,7 @@ class Register extends React.Component {
   }
 
   async componentDidMount() {
-    const result = await this.props.auth.initLoginFromStorage()
+    const result = await this.props.auth.initLogin()
     if (result) await this.props.history.push('/profile')
   }
 

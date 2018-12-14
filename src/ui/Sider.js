@@ -19,6 +19,7 @@ export default class UISider extends React.Component {
     const auth = this.props.auth
     return (
       <Sider
+        breakpoint={'lg'}
         collapsible
         collapsed={app.collapsed}
         trigger={null}

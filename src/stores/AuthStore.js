@@ -21,17 +21,16 @@ export default class AuthStore {
   @action.bound
   initAxios() {
     if (this.app.axios) return
-    let currentToken = localStorage.getItem('token')
-    let config = {}
-    if (currentToken) config.headers = {
-      'Token': currentToken
+    let config = {
+      withCredentials: true
     }
     this.app.axios = axios.create(config)
+    this.app.axios.defaults.withCredentials = true
     let isRefreshing = false
     let refreshSubscribers = []
     const refreshAccessToken = () => {
       return new Promise((resolve, reject) => {
-        this.app.axios.post(`${this.app.API_HOST}/api/auth/token`, {}).then(res => {
+        this.app.axios.get(`${this.app.API_HOST}/api/user`, {}).then(res => {
           if (res.data.token) {
             resolve(res.data.token)
           } else {
@@ -83,10 +82,6 @@ export default class AuthStore {
         const retryOrigReq = new Promise((resolve, reject) => {
           subscribeTokenRefresh(token => {
             // replace the expired token and retry
-            localStorage.setItem('token', token)
-            this.user.token = token
-            originalRequest.headers['Token'] = token
-            this.app.axios.defaults.headers.common['Token'] = token
             console.log('Resolving with original request')
             resolve(axios(originalRequest))
           })
@@ -129,28 +124,16 @@ export default class AuthStore {
   doLogin(data) {
     this.user = data
     this.login = data.login
-    this.nickname = data.nickname
     this.loggedIn = true
     this.loading = false
-    localStorage.setItem('token', data.token)
   }
 
   @action.bound
-  async initLoginFromStorage() {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      this.loggedIn = false
-      return false
-    }
+  async initLogin() {
     try {
+      if (!this.app.axios) await this.initAxios()
       this.loading = true
-      const response = await this.app.axios({
-        method: 'GET',
-        headers: {
-          Token: token
-        },
-        url: `${this.app.API_HOST}/api/user`
-      })
+      const response = await this.app.axios.get(`${this.app.API_HOST}/api/user`)
       this.doLogin(response.data)
       return true
     } catch (e) {

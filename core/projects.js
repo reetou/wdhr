@@ -171,10 +171,14 @@ class Projects {
   }
 
   async remove(id, login) {
-    let project = await db.findInHash('projects', id)
+    let project = await db.findInHash(`projects_${login}`, id)
     if (!project) return false
     project = JSON.parse(project)
     if (project.author !== login) return false
+    const allRatedUsers = await db.findAllInHash(`project_${id}_rating`)
+    await Promise.all(_.map(allRatedUsers, async (value, login) => {
+      await db.removeFromHash(`project_${login}_rated`, id)
+    }))
     await db.removeFromHash('projects', id)
     await db.removeFromHash(`projects_${login}`, id)
     return true

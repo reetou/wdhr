@@ -4,6 +4,7 @@ import { observer, inject } from 'mobx-react'
 import {
   Form, Icon, Input, Button, Checkbox, Select, InputNumber, Layout
 } from 'antd'
+import BookAppearAnimation from "./BookAppearAnimation"
 const _ = require('lodash')
 
 const FormItem = Form.Item;
@@ -47,7 +48,7 @@ class CreateProjectForm extends React.Component {
     const { auth, project } = this.props
     const { getFieldDecorator } = this.props.form
     if (project.creating) {
-      return <div>Creating...</div>
+      return <div style={{ textAlign: 'center' }}><BookAppearAnimation/></div>
     }
     return (
       <Form onSubmit={this.submit}>

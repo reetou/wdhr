@@ -8,18 +8,18 @@ import {
 import BookAppearAnimation from "../ui/BookAppearAnimation"
 const _ = require('lodash')
 @inject('auth', 'project')
-@observer
 @withRouter
+@observer
 export default class CreateProject extends React.Component {
 
   render() {
     const { auth, project, history } = this.props
     return (
       <Layout style={{ backgroundColor: '#fff', padding: 24 }}>
-        { !project.creating && <div style={{ display: 'flex', marginBottom: 15, alignItems: 'center' }}>
+        { !project.creating ? <div style={{ display: 'flex', marginBottom: 15, alignItems: 'center' }}>
           <Icon onClick={() => history.push('/myprojects')} type="left-square" theme="twoTone" style={{ fontSize: 24, width: 25, marginRight: 10, cursor: 'pointer' }} />
           <h2 style={{ marginBottom: 0 }}>Создаем проект</h2>
-        </div>}
+        </div> : null}
         { auth.error && <h4 style={{ color: 'red' }}>{auth.error}</h4> }
         <CreateProjectForm/>
       </Layout>

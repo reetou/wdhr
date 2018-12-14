@@ -12,7 +12,7 @@ const SubMenu = Menu.SubMenu;
 import 'antd/dist/antd.css'
 import { withRouter } from "react-router-dom"
 
-@inject('app', 'auth')
+@inject('app', 'auth', 'project', 'article')
 @withRouter
 @observer
 export default class MainPage extends React.Component {
@@ -20,6 +20,9 @@ export default class MainPage extends React.Component {
   async componentDidMount() {
     this.props.app.history = this.props.history
     await this.props.auth.initAxios()
+    console.log('PROJECT PROP', this.props.project)
+    await this.props.project.loadUserProjects()
+    await this.props.article.loadUserArticles()
   }
 
   render() {

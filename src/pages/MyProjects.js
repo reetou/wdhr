@@ -21,16 +21,18 @@ const IconText = ({ type, text, rated, onClick, animate }) => (
 @observer
 export default class MyProjects extends React.Component {
 
+  componentDidMount() {
+    this.props.project.loadUserProjects()
+  }
+
   render() {
-    const app = this.props.app
-    const auth = this.props.auth
     const project = this.props.project
     return (
       <div style={{ padding: 24, background: '#fff', minHeight: 460 }}>
         <h1>
           <span style={{ marginRight: 10 }}>Мои проекты</span>
           <Button disabled={project.loading} style={{ marginRight: 10 }} onClick={() => this.props.history.push('/myprojects/create')}>Новый проект</Button>
-          <Button disabled={project.loading} style={{ marginRight: 10 }} onClick={project.loadUserProjects}>{project.userProjects.length ? 'Обновить' : 'Загрузить'}</Button>
+          <Button disabled={project.loading} style={{ marginRight: 10 }} onClick={project.loadUserProjects}>{project.loading ? 'Гружу...' : project.userProjects.length ? 'Обновить' : 'Загрузить'}</Button>
         </h1>
         <List
           itemLayout={'vertical'}

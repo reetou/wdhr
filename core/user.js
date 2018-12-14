@@ -29,79 +29,43 @@ class User {
     return _.map(rated, v => JSON.parse(v).id)
   }
 
-  async getSafeUserData(login, withToken = false, withRatedProjects = false, withRatedArticles) {
+  async getSafeUserData(login, withRatedProjects = false, withRatedArticles = false) {
     const user = await this.get(login)
     if (!user) return false
-    if (!withToken) delete user.token
-    if (withRatedProjects) user.rated = await this.getRatedProjects(login)
-    if (withRatedArticles) user.rated_articles = await this.getRatedArticles(login)
-    delete user.sessions
-    delete user.password
+    user.rated = await this.getRatedProjects(login)
+    user.rated_articles = await this.getRatedArticles(login)
+    delete user.github_id
     return user
   }
 
-  async register(login, nickname, password) {
-    try {
-      console.log('login nick pass', login, nickname, password)
-      const refresh = sha1(shortID.generate())
-      const regularUser = {
-        nickname: nickname,
-        login: login,
-        refresh,
-      }
-      const token = JWT.sign(regularUser, AUTH.jwtSecret, { expiresIn: AUTH.jwtExpireTime })
-      const sessions = []
-      sessions.push({
-        refresh,
-        date: Date.now(),
-        ip: this.TBD,
-        device: this.TBD
-      })
-      await db.addToHash('users', sha1(login), JSON.stringify({
-        login,
-        nickname,
-        password: sha1(password),
-        sessions,
-        token,
-        approved: false,
-        mentor: false,
-        github: ''
-      }))
-      return {
-        login,
-        nickname,
-        token,
-      }
-    } catch (e) {
-      logUserError('Error at register', e)
-      return false
-    }
-  }
-
-  async checkAuth(login, password) {
-    const user = await this.get(login)
-    if (!user) return false
-    return sha1(password) === user.password
-  }
-
-  async processSession(login) {
-    const user = await this.get(login)
-    const refresh = sha1(shortID.generate())
-    if (!user.sessions || user.sessions.length > 9) user.sessions = []
-    user.sessions.push({
-      refresh,
-      ip: this.TBD,
-      device: this.TBD,
-      date: Date.now(),
-    })
-    const token = JWT.sign({
-      nickname: user.nickname,
-      login: user.login,
-      refresh,
-    }, AUTH.jwtSecret, { expiresIn: AUTH.jwtExpireTime })
-    user.token = token
-    await this.save(user)
-    return token
+  async register(data) {
+    await db.addToHash('users', sha1(data.login), JSON.stringify({
+      login: data.login,
+      github_id: data.id,
+      avatar_url: data.avatar_url,
+      github: data.html_url,
+      approved: false,
+      mentor: false,
+      is_mentored: false,
+      github_register_date: data.created_at,
+      github_update_date: data.updated_at,
+    }))
+    await db.addToHash('nodes', sha1(data.login), JSON.stringify({
+      login: data.login,
+      github_id: data.id,
+      node_id: data.node_id,
+    }))
+    await db.addToHash('users_nodes', data.node_id, JSON.stringify({
+      login: data.login,
+      github_id: data.id,
+      avatar_url: data.avatar_url,
+      github: data.html_url,
+      approved: false,
+      mentor: false,
+      is_mentored: false,
+      github_register_date: data.created_at,
+      github_update_date: data.updated_at,
+    }))
   }
 
   async save(user) {

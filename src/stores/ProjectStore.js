@@ -46,10 +46,11 @@ export default class ProjectStore {
         is_public: data.is_public || false,
       }
     }))
-      .delay(2000)
+      .delay(500)
       .finally(() => {
         this.loading = false
         this.creating = false
+        this.app.history.push('/myprojects')
         console.log('At finally, set creating to false', this.creating)
       })
       .subscribe(v => console.log('V???', v), err => console.log('Error at create project', err), (d) => console.log('complete', d))
@@ -65,16 +66,15 @@ export default class ProjectStore {
         Token: this.auth.user.token
       },
     }))
-      .finally(() => {
-        this.loading = false
-      })
       .subscribe(
-        v => console.log('Deleted project', v.data),
+        v => {
+          this.projects = []
+          console.log('Deleted project', v.data)
+        },
         err => console.log('Err at delete project', err),
         () => {
-          this.projects = []
-          this.loadUserProjects()
-          this.loadAll()
+          this.loadAll(false)
+          this.loadUserProjects(true)
         }
       )
   }
@@ -90,22 +90,22 @@ export default class ProjectStore {
       },
       data,
     }))
-      .finally(() => {
-        this.loading = false
-      })
       .subscribe(
-        v => console.log('Edited project', v.data),
+        v => {
+          this.projects = []
+          console.log('Edited project', v.data)
+        },
         err => console.log('Err at delete project', err),
         () => {
-          this.projects = []
-          this.loadUserProjects()
-          this.loadAll()
+          this.loadAll(false)
+          this.loadUserProjects(true)
         }
       )
   }
 
   @action.bound
-  loadUserProjects() {
+  loadUserProjects(end = true) {
+    const backupUserProjects = JSON.parse(JSON.stringify({ projects: this.userProjects }))
     this.loading = true
     this.userProjects = []
     const obs = Rx.Observable.fromPromise(this.app.axios({
@@ -115,9 +115,9 @@ export default class ProjectStore {
         Token: this.auth.user.token
       },
     }))
-      .delay(2000)
+      .delay(450)
       .finally(() => {
-        this.loading = false
+        if (end) this.loading = false
       })
       .subscribe(
         res => {
@@ -131,13 +131,14 @@ export default class ProjectStore {
           } else {
             this.error = e.message
           }
+          this.userProjects = backupUserProjects.projects
         },
         () => this.error = ''
       )
   }
 
   @action.bound
-  loadAll() {
+  loadAll(end = true) {
     this.loading = true
     if (!this.projects.length) {
       this.hasMore = true
@@ -152,7 +153,7 @@ export default class ProjectStore {
       },
     }))
       .finally(() => {
-        this.loading = false
+        if (end) this.loading = false
       })
       .subscribe(
         res => {

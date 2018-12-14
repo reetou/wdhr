@@ -74,23 +74,12 @@ const uniqueFields = (fields = []) => {
   })
 }
 
-const checkJWT = (ignoreExpire = false) => {
-  return asyncFn(async (req, res, next) => {
-    try {
-      const token = req.get('Token')
-			if (!token) return res.status(403).send({ err: `Без токена никак` })
-      try {
-        req.jwt = JWT.verify(token, AUTH.jwtSecret, { ignoreExpiration: ignoreExpire })
-      } catch (e) {
-        return res.status(401).send({ err: e.message })
-      }
-    } catch (e) {
-      logMiddlewareError(`Err at check jwt by middleware`, e)
-			console.log('Err at check jwt', e)
-      return res.status(500).send({ err: `Internal err, aborting`, e: e.message })
-    }
+const checkAuth = () => {
+  return (req, res, next) => {
+    console.log('IS AUTHENTICATED?', req.isAuthenticated())
+    if (!req.isAuthenticated()) return res.status(401).send({ err: `Not recognized` })
     return next()
-  })
+  }
 }
 
 module.exports = {
@@ -98,5 +87,5 @@ module.exports = {
   uniqueFields,
   checkIfLoginUnique,
   checkForFields,
-  checkJWT
+  checkAuth
 }
