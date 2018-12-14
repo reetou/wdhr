@@ -20,6 +20,7 @@ let server
 
 const start = function() {
   const db = require('./db')
+  console.log(`AUTH REDIRECTS TO ${REDIRECT_URL}`)
 
   app.use((req, res, next) => {
 
