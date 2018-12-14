@@ -77,7 +77,7 @@ class Article {
   }
 
   async create(title, content, type, author, is_public) {
-    const count = await db.getHashLen('articles')
+    const count = await db.getListLen('articles', 'create')
     const id = Number(count) + 1
     const data = {
       id,
@@ -92,6 +92,7 @@ class Article {
     if (is_public) {
       await db.addToHash(`articles_${author}`, id, JSON.stringify(data))
     }
+    await db.addToList(`articles`, `create`, JSON.stringify(data))
     await db.addToHash('articles', id, JSON.stringify(data))
     return await this.getById(id, author)
   }

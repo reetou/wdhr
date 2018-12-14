@@ -184,7 +184,7 @@ class Projects {
   }
 
   async create(name, description, title, estimates, type, author, budget, is_public) {
-    const count = await db.getHashLen('projects')
+    const count = await db.getListLen('projects', 'create')
     const id = Number(count) + 1
     const data = {
       id,
@@ -198,11 +198,11 @@ class Projects {
       budget,
       is_public
     }
-    console.log('Triggered create', author)
     await db.addToHash(`projects_${author}`, id, JSON.stringify(data))
     if (data.is_public) {
       await db.addToHash('projects', id, JSON.stringify(data))
     }
+    await db.addToList(`projects`, `create`, JSON.stringify(data))
     return await this.getById(id, author)
   }
 
