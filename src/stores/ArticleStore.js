@@ -34,9 +34,6 @@ export default class ArticleStore {
     const obs = Rx.Observable.fromPromise(this.app.axios({
       url: `${this.app.API_HOST}/api/articles`,
       method: 'POST',
-      headers: {
-        Token: this.auth.user.token
-      },
       data: {
         ...data,
         is_public: data.is_public || false,
@@ -54,9 +51,6 @@ export default class ArticleStore {
     const obs = Rx.Observable.fromPromise(this.app.axios({
       url: `${this.app.API_HOST}/api/articles/${id}`,
       method: 'DELETE',
-      headers: {
-        Token: this.auth.user.token
-      },
     }))
       .finally(() => {
         this.loading = false
@@ -78,9 +72,6 @@ export default class ArticleStore {
     const obs = Rx.Observable.fromPromise(this.app.axios({
       url: `${this.app.API_HOST}/api/user/articles/${id}`,
       method: 'PUT',
-      headers: {
-        Token: this.auth.user.token
-      },
       data,
     }))
       .finally(() => {
@@ -103,15 +94,13 @@ export default class ArticleStore {
     const obs = Rx.Observable.fromPromise(this.app.axios({
       url: `${this.app.API_HOST}/api/user/articles`,
       method: 'GET',
-      headers: {
-        Token: this.auth.user.token
-      },
     }))
       .finally(() => {
         this.loading = false
       })
       .subscribe(
         res => {
+          console.log(`RES AT GET USER ARTICLES`, res)
           this.userArticles = res.data.articles
         },
         e => {
@@ -138,15 +127,13 @@ export default class ArticleStore {
     const obs = Rx.Observable.fromPromise(this.app.axios({
       url: `${this.app.API_HOST}/api/articles?cursor=${this.cursor}`,
       method: 'GET',
-      headers: {
-        Token: this.auth.user.token
-      },
     }))
       .finally(() => {
         this.loading = false
       })
       .subscribe(
         res => {
+          console.log(`RES AT LOAD ARTICLES`, res)
           this.articles = this.articles.concat(res.data.articles)
           if (res.data.cursor) {
             this.cursor = res.data.cursor
@@ -175,9 +162,6 @@ export default class ArticleStore {
       data: {
         id: Number(id)
       },
-      headers: {
-        Token: this.auth.user.token
-      }
     }))
       .finally(() => {
         this.loading = false

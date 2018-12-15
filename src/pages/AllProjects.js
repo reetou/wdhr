@@ -21,7 +21,7 @@ const IconText = ({ type, text, rated, onClick }) => (
 export default class AllProjects extends React.Component {
 
   componentDidMount() {
-    if (!this.props.project.cursor) {
+    if (!this.props.project.cursor && this.props.auth.loggedIn) {
       this.props.project.loadAll()
     }
   }

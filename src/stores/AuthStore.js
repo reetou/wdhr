@@ -18,6 +18,15 @@ export default class AuthStore {
   @observable user = {}
   @observable loggingIn = false
 
+
+  @action.bound
+  redirect(to, redirectToLoginIfNotUser = true) {
+    if (redirectToLoginIfNotUser && !this.loggedIn) {
+      return this.app.history.push('/login')
+    }
+    this.app.history.push(to)
+  }
+
   @action.bound
   async register(data) {
     try {
@@ -54,7 +63,7 @@ export default class AuthStore {
 
   @action.bound
   async initLogin(redirectTo = false) {
-    if (this.loggingIn) return
+    if (this.loggingIn || this.loggedIn) return
     try {
       this.loggingIn = true
       this.loading = true
@@ -64,10 +73,11 @@ export default class AuthStore {
       return true
     } catch (e) {
       // noop
-      console.log('Error', e)
+      console.log('Error at init login', e)
       this.loggingIn = false
       this.loading = false
       this.loggedIn = false
+      this.app.history.push('/login')
       return false
     }
   }

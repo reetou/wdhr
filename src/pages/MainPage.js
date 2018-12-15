@@ -28,15 +28,44 @@ import Project from "./Project"
 @inject('app', 'auth', 'project', 'article')
 @withRouter
 @observer
-export default class MainPage extends React.Component {
+class CustomRedirecter extends React.Component {
+
 
   async componentDidMount() {
+    console.log(`Redirecter mounted`)
     this.props.app.history = this.props.history
-    await this.props.auth.initLogin('/myprojects')
+    let auth = true
+    console.log(`lOADING? ${this.props.auth.loading}, logging in now? ${this.props.auth.loggingIn}`)
+    if (!this.props.auth.loggedIn) {
+      auth = false
+      auth = await this.props.auth.initLogin('/myprojects')
+    }
     console.log(`MAINPAGE LOGGED IN?`, this.props.auth.loggedIn)
     console.log(`MATCH DATA ROUTER`, this.props.location)
-    await this.props.project.loadUserProjects()
-    await this.props.article.loadUserArticles()
+    if (auth) {
+      await this.props.project.loadUserProjects()
+      await this.props.article.loadUserArticles()
+    }
+  }
+
+  render() {
+    if (this.props.auth.loading || this.props.auth.loggingIn) {
+      return <h1>Loading...</h1>
+    }
+    return <div>
+      {this.props.children}
+    </div>
+  }
+
+}
+
+@inject('app', 'auth', 'project', 'article')
+@withRouter
+@observer
+export default class MainPage extends React.Component {
+
+  componentWillMount() {
+    this.props.app.history = this.props.history
   }
 
   render() {
@@ -62,17 +91,16 @@ export default class MainPage extends React.Component {
             <span style={{ marginLeft: 10 }}>{app.header}</span>
           </Header>
           <Content style={{ margin: '16px 16px 0 16px' }}>
-            <Route exact path="/" render={() => auth.loggedIn ? <Redirect to={'/profile'}/> : <Login />} />
-            <Route path="/profile" render={() => auth.loggedIn ? <Profile/> : <Redirect to={'/login'}/>} />
-            <Route path="/register" render={() => auth.loggedIn ? <Redirect to={'/profile'}/> : <Register />} />
-            <Route path="/login" render={() => auth.loggedIn ? <Redirect to={'/profile'}/> : <Login />} />
-            <Route exact path="/myprojects" render={() => true ? <MyProjects/> : <Redirect to={'/login'}/>} />
-            <Route exact path="/projects" render={() => auth.loggedIn ? <AllProjects/> : <Redirect to={'/login'}/>} />
-            <Route exact path="/myarticles" render={() => auth.loggedIn ? <MyArticles/> : <Redirect to={'/login'}/>} />
-            <Route exact path="/articles" render={() => auth.loggedIn ? <AllArticles/> : <Redirect to={'/login'}/>} />
-            <Route path="/myprojects/create" render={() => auth.loggedIn ? <CreateProject/> : <Redirect to={'/login'}/>} />
-            <Route path={'/projects/:id'} render={() => <Project/>} />
-            <Route path="/myarticles/create" render={() => auth.loggedIn ? <CreateArticle/> : <Redirect to={'/login'}/>} />
+            <Route exact path="/" render={() => <CustomRedirecter><Profile /></CustomRedirecter>} />
+            <Route path="/profile" render={() => <CustomRedirecter><Profile/></CustomRedirecter>} />
+            <Route path={'/login'} component={Login} />
+            <Route exact path="/myprojects" render={() => <CustomRedirecter><MyProjects/></CustomRedirecter>} />
+            <Route exact path="/projects" render={() => <CustomRedirecter><AllProjects/></CustomRedirecter>} />
+            <Route exact path="/myarticles" render={() => <CustomRedirecter><MyArticles/></CustomRedirecter>} />
+            <Route exact path="/articles" render={() => <CustomRedirecter><AllArticles/></CustomRedirecter>} />
+            <Route path="/myprojects/create" render={() => <CustomRedirecter><CreateProject/></CustomRedirecter>} />
+            <Route path={'/projects/:id'} render={() => <CustomRedirecter><Project/></CustomRedirecter>} />
+            <Route path="/myarticles/create" render={() => <CustomRedirecter><CreateArticle/></CustomRedirecter>} />
             <Route path="/about" component={About} />
             <DevTools/>
           </Content>

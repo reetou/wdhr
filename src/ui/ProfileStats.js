@@ -6,7 +6,7 @@ import {
   Row, Card, Col
 } from 'antd'
 import { withRouter } from 'react-router-dom'
-import UIAvatar from "../ui/Avatar"
+const _ = require('lodash')
 
 const CardHeadTitle = ({ title }) => <div
   style={{
@@ -33,6 +33,7 @@ export default class ProfileStats extends React.Component {
     const md = 8
     const sm = 12
     const xs = 24
+    if (_.isEmpty(auth.user)) return <div />
     return (
       <Row>
         <Col xs={xs} sm={sm} md={md} lg={lg}>

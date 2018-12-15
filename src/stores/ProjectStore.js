@@ -45,7 +45,7 @@ export default class ProjectStore {
         },
         err => {
           console.log(`Error at load single project id ${id}`, err)
-          this.app.history.push('/myprojects')
+          this.auth.redirect('/myprojects')
         },
         () => console.log('Complete')
       )
@@ -58,9 +58,6 @@ export default class ProjectStore {
     const obs = Rx.Observable.fromPromise(this.app.axios({
       url: `${this.app.API_HOST}/api/projects`,
       method: 'POST',
-      headers: {
-        Token: this.auth.user.token
-      },
       data: {
         ...data,
         is_public: data.is_public || false,
@@ -82,9 +79,6 @@ export default class ProjectStore {
     const obs = Rx.Observable.fromPromise(this.app.axios({
       url: `${this.app.API_HOST}/api/projects/${id}`,
       method: 'DELETE',
-      headers: {
-        Token: this.auth.user.token
-      },
     }))
       .subscribe(
         v => {
@@ -105,9 +99,6 @@ export default class ProjectStore {
     const obs = Rx.Observable.fromPromise(this.app.axios({
       url: `${this.app.API_HOST}/api/user/projects/${id}`,
       method: 'PUT',
-      headers: {
-        Token: this.auth.user.token
-      },
       data,
     }))
       .subscribe(
@@ -131,9 +122,6 @@ export default class ProjectStore {
     const obs = Rx.Observable.fromPromise(this.app.axios({
       url: `${this.app.API_HOST}/api/user/projects`,
       method: 'GET',
-      headers: {
-        Token: this.auth.user.token
-      },
     }))
       .delay(450)
       .finally(() => {
@@ -169,9 +157,6 @@ export default class ProjectStore {
     const obs = Rx.Observable.fromPromise(this.app.axios({
       url: `${this.app.API_HOST}/api/projects?cursor=${this.cursor}`,
       method: 'GET',
-      headers: {
-        Token: this.auth.user.token
-      },
     }))
       .finally(() => {
         if (end) this.loading = false
@@ -204,9 +189,6 @@ export default class ProjectStore {
       data: {
         id: Number(id)
       },
-      headers: {
-        Token: this.auth.user.token
-      }
     }))
       .finally(() => {
         this.loading = false

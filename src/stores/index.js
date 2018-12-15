@@ -3,6 +3,7 @@ import AppStore from './AppStore'
 import AuthStore from './AuthStore'
 import ProjectStore from './ProjectStore'
 import ArticleStore from './ArticleStore'
+import { toJS } from "mobx/lib/mobx"
 
 function createStores() {
   const app = new AppStore();
