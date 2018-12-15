@@ -54,6 +54,7 @@ export default class MainPage extends React.Component {
                 marginLeft: 10,
                 cursor: 'pointer'
               }}
+              id={'collapse-custom-button'}
               className="trigger"
               type={app.collapsed ? 'menu-unfold' : 'menu-fold'}
               onClick={() => app.collapsed = !app.collapsed}

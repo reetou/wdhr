@@ -3,7 +3,7 @@ import { observable } from 'mobx'
 import { observer, inject } from 'mobx-react'
 import { Link, withRouter } from 'react-router-dom'
 import {
-  Icon, Input, Checkbox, Button, List, Spin, Avatar
+  Icon, Input, Checkbox, Button, List, Spin, Avatar, Row, Col
 } from 'antd';
 const _ = require('lodash')
 
@@ -27,8 +27,23 @@ export default class Project extends React.Component {
     const proj = project.currentProject
     return (
       <div style={{ padding: 24, background: '#fff', minHeight: 460 }}>
-        <h1>{_.capitalize(project.currentProject.name)} purojecto</h1>
-        <p>by {proj.author}</p>
+        <Row>
+          <Col xs={24} sm={12}>
+            <h1>{_.capitalize(project.currentProject.name)} purojecto</h1>
+            <p>by {proj.author}</p>
+          </Col>
+          <Col xs={24} sm={12}>
+            {
+              !proj.owner ?
+                <React.Fragment>
+                  <Button>Просмотреть реквесты</Button>
+                </React.Fragment> :
+                <React.Fragment>
+                  <Button>Отправить реквест на участие</Button>
+                </React.Fragment>
+            }
+          </Col>
+        </Row>
       </div>
     )
   }
