@@ -24,7 +24,7 @@ class Projects {
     this.ALLOWED_EDIT_PROPS = ['is_public', 'name', 'description', 'title', 'budget']
   }
 
-  async get(cursor = 0, asc = true) {
+  async get(cursor = 0, login, asc = true) {
     const data = await db.scanHash('projects', cursor)
     console.log('PROJECT SCAN', data)
     const updatedCursor = data[0]
@@ -33,6 +33,7 @@ class Projects {
       const project = JSON.parse(p)
       return {
         ...project,
+        owner: project.author === login,
         rating: await this.getRating(project.id)
       }
     }))
@@ -48,6 +49,7 @@ class Projects {
       const project = JSON.parse(p)
       return {
         ...project,
+        owner: project.author === login,
         rating: await this.getRating(project.id)
       }
     }))
@@ -75,11 +77,13 @@ class Projects {
   }
 
   async getById(id, login, checkOwner = false, checkPrivacy = false, admin = false) {
-    let project = await db.findInHash(`projects_${login}`, id)
+    let project = await db.findInHash(`projects`, id)
+    if (!project) project = await db.findInHash(`projects_${login}`, id)
     if (!project) return false
     project = JSON.parse(project)
     if (checkOwner && project.author !== login) return false
     if (checkPrivacy && !project.is_public && project.author !== login && !admin) return false
+    project.owner = project.author === login
     // Add unsafe props
     return project
   }

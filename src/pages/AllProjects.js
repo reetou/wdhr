@@ -26,6 +26,11 @@ export default class AllProjects extends React.Component {
     }
   }
 
+  goToProject = project => {
+    this.props.project.currentProject = project
+    this.props.history.push(`/projects/${project.id}`)
+  }
+
   render() {
     const app = this.props.app
     const auth = this.props.auth
@@ -59,7 +64,7 @@ export default class AllProjects extends React.Component {
             >
               <List.Item.Meta
                 avatar={<Avatar src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png" />}
-                title={<a>{item.name}</a>}
+                title={<a onClick={() => this.goToProject(item)}>{item.name}</a>}
                 description={item.type.join(', ')}
               />
               <div>{item.title.substring(0, 100)}...</div>

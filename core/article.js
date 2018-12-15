@@ -126,7 +126,6 @@ class Article {
       await db.removeFromHash(`articles`, article.id)
     }
     await db.addToHash(`articles_edits`, `id_${article.id}_${Date.now()}`, JSON.stringify({ date: now, article: { ...article, lastEdit: now } }))
-    console.log('Returning article', article)
     return article
   }
 

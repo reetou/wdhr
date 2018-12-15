@@ -1,4 +1,4 @@
-import { observable, action, computed } from 'mobx'
+import { observable, action, computed, toJS } from 'mobx'
 import * as Rx from 'rxjs/Rx'
 import * as mobxUtils from 'mobx-utils'
 import axios from 'axios'
@@ -14,6 +14,7 @@ export default class ProjectStore {
 
   @observable created = {}
   @observable projects = []
+  @observable currentProject = {}
   @observable userProjects = []
   @observable cursor = 0
   @observable hasMore = true
@@ -29,6 +30,25 @@ export default class ProjectStore {
   @computed get
   sortedUserProjects() {
     return _.sortBy(this.userProjects, 'id')
+  }
+
+  @action.bound
+  loadProject(id) {
+    return Rx.Observable.fromPromise(this.app.axios({
+      url: `${this.app.API_HOST}/api/projects/${id}`,
+      method: 'GET',
+    }))
+      .subscribe(
+        v => {
+          this.currentProject = v.data
+          console.log(`Loaded project ${id}`, toJS(this.currentProject))
+        },
+        err => {
+          console.log(`Error at load single project id ${id}`, err)
+          this.app.history.push('/myprojects')
+        },
+        () => console.log('Complete')
+      )
   }
 
   @action.bound
@@ -121,6 +141,7 @@ export default class ProjectStore {
       })
       .subscribe(
         res => {
+          console.log(`User projects`, res.data.projects)
           this.userProjects = res.data.projects
         },
         e => {
@@ -158,6 +179,7 @@ export default class ProjectStore {
       .subscribe(
         res => {
           this.projects = this.projects.concat(res.data.projects)
+          console.log(`all projects`, toJS(this.projects))
           this.cursor = res.data.cursor
           this.hasMore = Boolean(Number(res.data.cursor))
         },

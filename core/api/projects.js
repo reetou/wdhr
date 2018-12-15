@@ -8,10 +8,16 @@ const _ = require('lodash')
 const Projects = require('../projects')
 const { asyncFn, checkForFields, checkAuth } = require('../middleware')
 
-router.get('/', asyncFn(async (req, res) => {
+router.get('/', checkAuth(), asyncFn(async (req, res) => {
   const cursor = req.query.cursor || 0
-  const projects = await Projects.get(cursor)
+  const projects = await Projects.get(cursor, req.user.username)
   res.send(projects)
+}))
+
+router.get('/:id', checkAuth(), asyncFn(async (req, res) => {
+  const result = await Projects.getById(req.params.id, req.user.username, true, true)
+  if (!result) return res.status(404).send({ err: `No public or associated project id ${req.params.id} found` })
+  res.send(result)
 }))
 
 router.post('/', checkAuth(), checkForFields(Projects.CREATE_PROPS), asyncFn(async (req, res) => {

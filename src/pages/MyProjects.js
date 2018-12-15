@@ -25,6 +25,11 @@ export default class MyProjects extends React.Component {
     this.props.project.loadUserProjects()
   }
 
+  goToProject = project => {
+    this.props.project.currentProject = project
+    this.props.history.push(`/projects/${project.id}`)
+  }
+
   render() {
     const project = this.props.project
     return (
@@ -59,7 +64,7 @@ export default class MyProjects extends React.Component {
             >
               <List.Item.Meta
                 avatar={<Avatar src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png" />}
-                title={<a>{item.name}</a>}
+                title={<a onClick={() => this.goToProject(item)}>{item.name}</a>}
                 description={item.type.join(', ')}
               />
               <div>{item.title}...</div>
