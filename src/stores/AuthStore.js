@@ -20,10 +20,8 @@ export default class AuthStore {
 
 
   @action.bound
-  redirect(to, redirectToLoginIfNotUser = true) {
-    if (redirectToLoginIfNotUser && !this.loggedIn) {
-      return this.app.history.push('/login')
-    }
+  redirect(to) {
+    console.log(`Redirecting to ${to}`)
     this.app.history.push(to)
   }
 

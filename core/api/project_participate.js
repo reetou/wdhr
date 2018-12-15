@@ -7,23 +7,23 @@ const { AUTH } = require('../config')
 const Projects = require('../projects')
 const { asyncFn, checkForFields, checkAuth } = require('../middleware')
 
-router.post('/request', checkAuth(), checkForFields({ id: 'number', comment: 'string' }), asyncFn(async (req, res) => {
-  await Projects.requestParticipation(req.body.id, req.user.username, req.body.comment)
+router.post('/request/:id', checkAuth(), checkForFields({ comment: 'string', position: 'string' }), asyncFn(async (req, res) => {
+  await Projects.requestParticipation(req.params.id, req.user.username, req.body.comment, req.body.position)
   res.send({ ok: true })
 }))
 
-router.delete('/request', checkAuth(), checkForFields({ id: 'number' }), asyncFn(async (req, res) => {
-  await Projects.revokeParticipation(req.body.id, req.user.username)
+router.delete('/request/:id', checkAuth(), asyncFn(async (req, res) => {
+  await Projects.revokeParticipation(req.params.id, req.user.username)
   res.send({ ok: true })
 }))
 
-router.post('/owner/accept', checkAuth(), checkForFields({ id: 'number', login: 'string' }), asyncFn(async (req, res) => {
-  await Projects.acceptParticipator(req.body.id, req.body.login, req.body.title)
+router.post('/owner/accept/:id', checkAuth(), checkForFields({ login: 'string' }), asyncFn(async (req, res) => {
+  await Projects.acceptParticipator(req.params.id, req.body.login, req.body.title)
   res.send({ ok: true })
 }))
 
-router.post('/owner/deny', checkAuth(), checkForFields({ id: 'number', login: 'string' }), asyncFn(async (req, res) => {
-  await Projects.denyParticipator(req.body.id, req.body.login, req.body.reason)
+router.post('/owner/deny/:id', checkAuth(), checkForFields({ login: 'string' }), asyncFn(async (req, res) => {
+  await Projects.denyParticipator(req.params.id, req.body.login, req.body.reason)
   res.send({ ok: true })
 }))
 

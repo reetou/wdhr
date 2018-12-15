@@ -5,6 +5,7 @@ import { Link, withRouter } from 'react-router-dom'
 import {
   Icon, Input, Checkbox, Button, List, Spin, Avatar, Row, Col
 } from 'antd';
+import RequestParticipationFormDrawer from "../ui/RequestParticipationFormDrawer"
 const _ = require('lodash')
 
 @inject('app', 'auth', 'project')
@@ -27,6 +28,7 @@ export default class Project extends React.Component {
     const proj = project.currentProject
     return (
       <div style={{ padding: 24, background: '#fff', minHeight: 460 }}>
+        <RequestParticipationFormDrawer />
         <Row>
           <Col xs={24} sm={12}>
             <h1>{_.capitalize(project.currentProject.name)} purojecto</h1>
@@ -34,12 +36,14 @@ export default class Project extends React.Component {
           </Col>
           <Col xs={24} sm={12}>
             {
-              !proj.owner ?
+              proj.owner ?
                 <React.Fragment>
                   <Button>Просмотреть реквесты</Button>
                 </React.Fragment> :
                 <React.Fragment>
-                  <Button>Отправить реквест на участие</Button>
+                  <Button disabled={project.showParticipationForm} onClick={() => project.showParticipationForm = true}>
+                    Отправить реквест на участие
+                  </Button>
                 </React.Fragment>
             }
           </Col>

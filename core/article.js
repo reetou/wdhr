@@ -5,6 +5,14 @@ const { AUTH } = require('./config')
 const shortID = require('shortid')
 const logError = require('debug')('article:error')
 
+
+const USER_RATED_ARTICLES = login => `user_${login}_rated_projects`
+const ARTICLE_RATING = articleId => `project_${articleId}_rating`
+const USER_ARTICLES = login => `user_${login}_projects`
+const ARTICLES = () => `articles`
+const ARTICLE_EDITS = articleId => `project_${articleId}_edits`
+
+
 class Article {
   
   constructor() {
@@ -18,7 +26,7 @@ class Article {
   }
 
   async get(cursor = 0, asc = true) {
-    const data = await db.scanHash('articles', cursor)
+    const data = await db.scanHash(ARTICLES(), cursor)
     const updatedCursor = data[0]
     let articles = data[1].filter(v => typeof JSON.parse(v) === 'object')
     articles = await Promise.all(_.map(articles, async p => {
@@ -34,7 +42,7 @@ class Article {
   }
 
   async getUserArticles(login) {
-    let articles = await db.findAllInHash(`articles_${login}`)
+    let articles = await db.findAllInHash(USER_ARTICLES(login))
     if (!articles) return []
     return await Promise.all(_.map(articles, async p => {
       const article = JSON.parse(p)
@@ -47,27 +55,27 @@ class Article {
 
   async uprate(id, login) {
     if (!id || !login) return
-    await db.addToHash(`article_${id}_rating`, login, JSON.stringify({
+    await db.addToHash(ARTICLE_RATING(id), login, JSON.stringify({
       date: Date.now(),
       login,
     }))
-    await db.addToHash(`article_${login}_rated`, id, JSON.stringify({ date: Date.now(), id }))
-    return await db.getHashLen(`article_${id}_rating`)
+    await db.addToHash(USER_RATED_ARTICLES(login), id, JSON.stringify({ date: Date.now(), id }))
+    return await db.getHashLen(ARTICLE_RATING(id))
   }
 
   async downrate(id, login) {
     if (!id || !login) return
-    await db.removeFromHash(`article_${id}_rating`, login)
-    await db.removeFromHash(`article_${login}_rated`, id)
-    return await db.getHashLen(`article_${id}_rating`)
+    await db.removeFromHash(ARTICLE_RATING(id), login)
+    await db.removeFromHash(USER_RATED_ARTICLES(login), id)
+    return await db.getHashLen(ARTICLE_RATING(id))
   }
 
   async getRating(id) {
-    return await db.getHashLen(`article_${id}_rating`)
+    return await db.getHashLen(ARTICLE_RATING(id))
   }
   
   async getById(id, login, checkOwner = false, checkPrivacy = false, admin = false) {
-    let article = await db.findInHash(`articles_${login}`, id)
+    let article = await db.findInHash(USER_ARTICLES(login), id)
     if (!article) return false
     article = JSON.parse(article)
     if (checkOwner && article.author !== login) return false
@@ -77,7 +85,7 @@ class Article {
   }
 
   async create(title, content, type, author, is_public) {
-    const count = await db.getListLen('articles', 'create')
+    const count = await db.getListLen(ARTICLES(), 'create')
     const id = Number(count) + 1
     const data = {
       id,
@@ -90,10 +98,10 @@ class Article {
       is_public
     }
     if (is_public) {
-      await db.addToHash(`articles_${author}`, id, JSON.stringify(data))
+      await db.addToHash(USER_ARTICLES(author), id, JSON.stringify(data))
     }
-    await db.addToList(`articles`, `create`, JSON.stringify(data))
-    await db.addToHash('articles', id, JSON.stringify(data))
+    await db.addToList(ARTICLES(), `create`, JSON.stringify(data))
+    await db.addToHash(ARTICLES(), id, JSON.stringify(data))
     return await this.getById(id, author)
   }
   
@@ -119,23 +127,23 @@ class Article {
   async save(article) {
     const now = Date.now()
     if (!article.id || !article.author) return false
-    await db.addToHash(`articles_${article.author}`, article.id, JSON.stringify({ ...article, lastEdit: now }))
+    await db.addToHash(USER_ARTICLES(article.author), article.id, JSON.stringify({ ...article, lastEdit: now }))
     if (article.is_public) {
-      await db.addToHash(`articles`, article.id, JSON.stringify({ ...article, lastEdit: now }))
+      await db.addToHash(ARTICLES(), article.id, JSON.stringify({ ...article, lastEdit: now }))
     } else {
-      await db.removeFromHash(`articles`, article.id)
+      await db.removeFromHash(ARTICLES(), article.id)
     }
-    await db.addToHash(`articles_edits`, `id_${article.id}_${Date.now()}`, JSON.stringify({ date: now, article: { ...article, lastEdit: now } }))
+    await db.addToHash(ARTICLE_EDITS(article.id), `id_${article.id}_${Date.now()}`, JSON.stringify({ date: now, article: { ...article, lastEdit: now } }))
     return article
   }
 
   async remove(id, login) {
-    let article = await db.findInHash('articles', id)
+    let article = await db.findInHash(USER_ARTICLES(login), id)
     if (!article) return false
     article = JSON.parse(article)
     if (article.author !== login) return false
-    await db.removeFromHash('articles', id)
-    await db.removeFromHash(`articles_${login}`, id)
+    await db.removeFromHash(ARTICLES(), id)
+    await db.removeFromHash(USER_ARTICLES(login), id)
     return true
   }
 }

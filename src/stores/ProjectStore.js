@@ -20,7 +20,9 @@ export default class ProjectStore {
   @observable hasMore = true
   @observable loading = false
   @observable error = ''
+  @observable showParticipationForm = false
   @observable creating = false
+  @observable participationLoading = false
 
   @computed get
   sortedProjects() {
@@ -71,6 +73,42 @@ export default class ProjectStore {
         console.log('At finally, set creating to false', this.creating)
       })
       .subscribe(v => console.log('V???', v), err => console.log('Error at create project', err), (d) => console.log('complete', d))
+  }
+
+  @action.bound
+  requestParticipation(projectId, comment, position) {
+    this.participationLoading = true
+    Rx.Observable.fromPromise(this.app.axios({
+      url: `${this.app.API_HOST}/api/project/participation/request/${projectId}`,
+      method: 'POST',
+      data: {
+        position,
+        comment
+      }
+    }))
+      .finally(() => this.participationLoading = false)
+      .subscribe(
+        res => console.log(`Request successfully sent`, res.data),
+        err => {
+          console.log(`Error at request participation`, err)
+        }
+      )
+  }
+
+  @action.bound
+  revertParticipationRequest(projectId) {
+    this.participationLoading = true
+    Rx.Observable.fromPromise(this.app.axios({
+      url: `${this.app.API_HOST}/api/project/participation/request/${projectId}`,
+      method: 'DELETE'
+    }))
+      .finally(() => this.participationLoading = false)
+      .subscribe(
+        res => console.log(`Request successfully reverted`, res.data),
+        err => {
+          console.log(`Error at request participation`, err)
+        }
+      )
   }
 
   @action.bound

@@ -84,7 +84,7 @@ const start = function() {
   app.use('/api/user', require('./api/user'))
   app.use('/api/projects', require('./api/projects'))
   app.use('/api/articles', require('./api/article'))
-  app.use('/api/project', require('./api/project_participate'))
+  app.use('/api/project/participation', require('./api/project_participate'))
 
   app.use((err, req, res, next) => {
     if (res.headersSent) return next(err)
