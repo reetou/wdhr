@@ -15,7 +15,7 @@ router.get('/', checkAuth(), asyncFn(async (req, res) => {
 }))
 
 router.get('/:id', checkAuth(), asyncFn(async (req, res) => {
-  const result = await Projects.getById(req.params.id, req.user.username, true, true)
+  const result = await Projects.getById(req.params.id, req.user.username, false, true)
   if (!result) return res.status(404).send({ err: `No public or associated project id ${req.params.id} found` })
   res.send(result)
 }))

@@ -88,7 +88,11 @@ export default class ProjectStore {
     }))
       .finally(() => this.participationLoading = false)
       .subscribe(
-        res => console.log(`Request successfully sent`, res.data),
+        res => {
+          console.log(`Request successfully sent`, res.data)
+          this.showParticipationForm = false
+          this.currentProject = res.data
+        },
         err => {
           console.log(`Error at request participation`, err)
         }
@@ -104,7 +108,11 @@ export default class ProjectStore {
     }))
       .finally(() => this.participationLoading = false)
       .subscribe(
-        res => console.log(`Request successfully reverted`, res.data),
+        res => {
+          console.log(`Request successfully reverted`, res.data)
+          this.showParticipationForm = false
+          this.currentProject = res.data
+        },
         err => {
           console.log(`Error at request participation`, err)
         }

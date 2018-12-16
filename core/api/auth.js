@@ -18,7 +18,6 @@ router.get('/github',
 
 router.get('/github/callback', passport.authenticate('github', { failureRedirect: REDIRECT_URL }), asyncFn(async (req, res) => {
   console.log('Did all the shit')
-  console.log(`Is authenticated`, req.isAuthenticated())
   res.redirect(REDIRECT_URL)
 }));
 

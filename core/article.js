@@ -7,7 +7,7 @@ const logError = require('debug')('article:error')
 
 
 const USER_RATED_ARTICLES = login => `user_${login}_rated_projects`
-const ARTICLE_RATING = articleId => `project_${articleId}_rating`
+const ARTICLE_RATING = articleId => `article_${articleId}_rating`
 const USER_ARTICLES = login => `user_${login}_projects`
 const ARTICLES = () => `articles`
 const ARTICLE_EDITS = articleId => `project_${articleId}_edits`

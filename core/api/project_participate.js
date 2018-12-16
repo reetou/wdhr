@@ -9,12 +9,16 @@ const { asyncFn, checkForFields, checkAuth } = require('../middleware')
 
 router.post('/request/:id', checkAuth(), checkForFields({ comment: 'string', position: 'string' }), asyncFn(async (req, res) => {
   await Projects.requestParticipation(req.params.id, req.user.username, req.body.comment, req.body.position)
-  res.send({ ok: true })
+  const project = await Projects.getById(req.params.id, req.user.username, false)
+  if (!project) return res.status(500).send({ err: `Cannot find project ${req.params.id}`})
+  res.send(project)
 }))
 
 router.delete('/request/:id', checkAuth(), asyncFn(async (req, res) => {
   await Projects.revokeParticipation(req.params.id, req.user.username)
-  res.send({ ok: true })
+  const project = await Projects.getById(req.params.id, req.user.username, false)
+  if (!project) return res.status(500).send({ err: `Cannot find project ${req.params.id}`})
+  res.send(project)
 }))
 
 router.post('/owner/accept/:id', checkAuth(), checkForFields({ login: 'string' }), asyncFn(async (req, res) => {

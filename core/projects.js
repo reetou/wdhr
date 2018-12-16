@@ -34,6 +34,14 @@ class Projects {
     this.ALLOWED_EDIT_PROPS = ['is_public', 'name', 'description', 'title', 'budget']
   }
 
+  async isRequestedParticipation(login, projectId) {
+    return Boolean(await db.findInHash(USER_PARTICIPATION_REQUESTS(login), projectId))
+  }
+
+  async isAcceptedParticipator(login, projectId) {
+    return Boolean(await db.findInHash(PROJECT_ACCEPTED_PARTICIPATIONS(projectId), projectId))
+  }
+
   async get(cursor = 0, login, asc = true) {
     const data = await db.scanHash(PROJECTS(), cursor)
     console.log('PROJECT SCAN', data)
@@ -41,10 +49,16 @@ class Projects {
     let projects = data[1].filter(v => typeof JSON.parse(v) === 'object')
     projects = await Promise.all(_.map(projects, async p => {
       const project = JSON.parse(p)
+      const owner = project.author === login
       return {
         ...project,
-        owner: project.author === login,
-        rating: await this.getRating(project.id)
+        owner,
+        is_participator: await this.isAcceptedParticipator(login, project.id),
+        is_requested_participation: await this.isRequestedParticipation(login, project.id),
+        rating: await this.getRating(project.id),
+        ...owner ? {
+          participation_requests: await this.getParticipationRequests(project.id)
+        } : {}
       }
     }))
     projects = _.sortBy(projects, 'date')
@@ -57,10 +71,16 @@ class Projects {
     if (!projects) return []
     return await Promise.all(_.map(projects, async p => {
       const project = JSON.parse(p)
+      const owner = project.author === login
       return {
         ...project,
-        owner: project.author === login,
-        rating: await this.getRating(project.id)
+        owner,
+        is_participator: await this.isAcceptedParticipator(login, project.id),
+        is_requested_participation: await this.isRequestedParticipation(login, project.id),
+        rating: await this.getRating(project.id),
+        ...owner ? {
+          participation_requests: await this.getParticipationRequests(project.id)
+        } : {}
       }
     }))
   }
@@ -86,16 +106,34 @@ class Projects {
     return await db.getHashLen(PROJECT_RATING(id))
   }
 
-  async getById(id, login, checkOwner = false, checkPrivacy = false, admin = false) {
+  async getById(id, login, checkOwner = false, checkPrivacy = true, admin = false) {
+    console.log(`Will get project by id`, id)
     let project = await db.findInHash(PROJECTS(), id)
     if (!project) project = await db.findInHash(USER_PROJECTS(login), id)
     if (!project) return false
     project = JSON.parse(project)
-    if (checkOwner && project.author !== login) return false
-    if (checkPrivacy && !project.is_public && project.author !== login && !admin) return false
+    if (checkOwner && project.author !== login) {
+      console.log(`Checking owner and its not it`)
+      return false
+    }
+    if (checkPrivacy && !project.is_public && project.author !== login && !admin) {
+      console.log(`Project is private and returning false because its not an author and not an admin`)
+      return false
+    }
     project.owner = project.author === login
+    project.is_participator = await this.isAcceptedParticipator(login, project.id)
+    project.is_requested_participation = await this.isRequestedParticipation(login, project.id)
+    if (project.owner) {
+      project.participation_requests = await this.getParticipationRequests(project.id)
+    }
     // Add unsafe props
     return project
+  }
+
+  async getParticipationRequests(id) {
+    let requests = await db.findAllInHash(PROJECT_PARTICIPATION_REQUESTS(id))
+    requests = _.map(requests, req => JSON.parse(req))
+    return requests
   }
 
   async getProjectOwnerLogin(id) {
@@ -184,6 +222,9 @@ class Projects {
     console.log('Triggered save?')
     const now = Date.now()
     if (!project.id || !project.author) return false
+    delete project.owner
+    delete project.is_participator
+    delete project.is_requested_participation
     await db.addToHash(USER_PROJECTS(project.author), project.id, JSON.stringify(project))
     if (project.is_public) {
       await db.addToHash(PROJECTS(), project.id, JSON.stringify(project))

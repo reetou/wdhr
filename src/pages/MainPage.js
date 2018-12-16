@@ -24,6 +24,7 @@ import AllArticles from "./AllArticles"
 import CreateProject from "./CreateProject"
 import CreateArticle from "./CreateArticle"
 import Project from "./Project"
+import ProjectRequests from "./ProjectRequests"
 
 @inject('app', 'auth', 'project', 'article')
 @withRouter
@@ -32,17 +33,16 @@ class CustomRedirecter extends React.Component {
 
 
   async componentDidMount() {
-    console.log(`Redirecter mounted`)
     this.props.app.history = this.props.history
+    const project = this.props.project
     let auth = true
-    console.log(`lOADING? ${this.props.auth.loading}, logging in now? ${this.props.auth.loggingIn}`)
     if (!this.props.auth.loggedIn) {
       auth = false
       auth = await this.props.auth.initLogin('/myprojects')
     }
-    console.log(`MAINPAGE LOGGED IN?`, this.props.auth.loggedIn)
-    console.log(`MATCH DATA ROUTER`, this.props.location)
-    if (auth) {
+    console.log(`MATCH DATA ROUTER`, this.props.match)
+    console.log(`LOCATION DATA ROUTER`, this.props.location)
+    if (auth && !project.userProjects.length) {
       await this.props.project.loadUserProjects()
       await this.props.article.loadUserArticles()
     }
@@ -99,7 +99,8 @@ export default class MainPage extends React.Component {
             <Route exact path="/myarticles" render={() => <CustomRedirecter><MyArticles/></CustomRedirecter>} />
             <Route exact path="/articles" render={() => <CustomRedirecter><AllArticles/></CustomRedirecter>} />
             <Route path="/myprojects/create" render={() => <CustomRedirecter><CreateProject/></CustomRedirecter>} />
-            <Route path={'/projects/:id'} render={() => <CustomRedirecter><Project/></CustomRedirecter>} />
+            <Route exact path={'/projects/:id'} render={() => <CustomRedirecter><Project/></CustomRedirecter>} />
+            <Route path={'/projects/:id/requests'} render={() => <CustomRedirecter><ProjectRequests/></CustomRedirecter>} />
             <Route path="/myarticles/create" render={() => <CustomRedirecter><CreateArticle/></CustomRedirecter>} />
             <Route path="/about" component={About} />
             <DevTools/>

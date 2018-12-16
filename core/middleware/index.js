@@ -74,7 +74,6 @@ const uniqueFields = (fields = []) => {
 
 const checkAuth = () => {
   return (req, res, next) => {
-    console.log('IS AUTHENTICATED?', req.isAuthenticated())
     if (!req.isAuthenticated()) return res.status(401).send({ err: `Not recognized` })
     return next()
   }

@@ -16,6 +16,7 @@ export default class AppStore {
   @observable loggedIn = false
   @observable collapsed = false
   @observable header = 'WDH'
+  @observable path = '/'
   @observable API_HOST = process.env.NODE_ENV === 'production' ? 'http://kokoro.codes' : 'http://localhost:4000'
 
   @observable history = null

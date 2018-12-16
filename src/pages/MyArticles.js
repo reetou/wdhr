@@ -59,7 +59,7 @@ export default class MyArticles extends React.Component {
                 title={<a>{item.title}</a>}
                 description={item.type.join(', ')}
               />
-              <div>{item.content.substring(0, 100)}...</div>
+              <div>{_.at(item, 'content')[0] ? item.content.substring(0, 100) : ''}...</div>
             </List.Item>
           )}
         >

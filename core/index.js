@@ -25,7 +25,6 @@ const start = function() {
   app.use((req, res, next) => {
 
     const allowed = DEBUG ? ['http://localhost:1234', 'http://localhost:80', 'http://kokoro.codes'] : ['http://kokoro.codes']
-    console.log(`ORIGIN: ${req.headers.origin}`, `PRODUCTION: ${!DEBUG}`)
     if (allowed.indexOf(req.headers.origin) > -1) {
       res.header('Access-Control-Allow-Origin', req.headers.origin)
       res.header('Access-Control-Allow-Credentials', true)
@@ -49,12 +48,10 @@ const start = function() {
   }))
 
   passport.serializeUser(function(user, done) {
-    console.log('USER SERIALIZE')
     done(null, user);
   });
 
   passport.deserializeUser(function(obj, done) {
-    console.log('DESERIALIZE')
     done(null, obj);
   });
 
