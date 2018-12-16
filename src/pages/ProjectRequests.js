@@ -20,7 +20,12 @@ export default class ProjectRequests extends React.Component {
     if (_.isNaN(Number(projectId)) || Number(projectId) === 0) {
       return this.props.history.push('/myprojects')
     }
-    if (_.isEmpty(toJS(project.currentProject))) project.loadProject(projectId)
+    if (_.isEmpty(toJS(project.currentProject))) project.loadProject(projectId, updatedProject => {
+      if (!updatedProject.owner) {
+        console.log(`Not owner??`, updatedProject.owner)
+        this.props.history.push(`/projects/${projectId}`)
+      }
+    })
   }
 
   render() {

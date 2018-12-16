@@ -35,7 +35,7 @@ export default class ProjectStore {
   }
 
   @action.bound
-  loadProject(id) {
+  loadProject(id, cb) {
     return Rx.Observable.fromPromise(this.app.axios({
       url: `${this.app.API_HOST}/api/projects/${id}`,
       method: 'GET',
@@ -49,7 +49,10 @@ export default class ProjectStore {
           console.log(`Error at load single project id ${id}`, err)
           this.auth.redirect('/myprojects')
         },
-        () => console.log('Complete')
+        () => {
+          console.log('Complete', this.currentProject.owner)
+          if (cb) cb(this.currentProject)
+        }
       )
   }
 
