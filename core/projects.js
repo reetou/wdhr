@@ -3,6 +3,7 @@ const sha1 = require('sha1')
 const { AUTH } = require('./config')
 const shortID = require('shortid')
 const _ = require('lodash')
+const User = require('./user')
 const logError = require('debug')('projects:error')
 
 const USER_PARTICIPATION_REQUESTS = login => `user_${login}_participation_requests`
@@ -132,7 +133,16 @@ class Projects {
 
   async getParticipationRequests(id) {
     let requests = await db.findAllInHash(PROJECT_PARTICIPATION_REQUESTS(id))
-    requests = _.map(requests, req => JSON.parse(req))
+    requests = await Promise.all(_.map(requests, async req => {
+      const request = JSON.parse(req)
+      const user = await User.getSafeUserData(request.login)
+      console.log(`Get user by login`, user)
+      return {
+        ...request,
+        ...user ? user : {}
+      }
+    }))
+    console.log(`Getting participation request`, requests)
     return requests
   }
 
@@ -141,10 +151,10 @@ class Projects {
     return project.author
   }
 
-  async requestParticipation(id, login, comment, position) {
+  async requestParticipation(id, login, comment, position, telegram) {
     try {
       const data = {
-        login, position, comment, date: Date.now()
+        login, position, comment, contacts: { telegram }, date: Date.now()
       }
       await db.addToHash(USER_PARTICIPATION_REQUESTS(login), id, JSON.stringify(data))
       await db.addToHash(PROJECT_PARTICIPATION_REQUESTS(id), login, JSON.stringify(data))

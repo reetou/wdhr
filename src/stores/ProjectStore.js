@@ -22,7 +22,26 @@ export default class ProjectStore {
   @observable error = ''
   @observable showParticipationForm = false
   @observable creating = false
+  @observable requestLoading = false
   @observable participationLoading = false
+  @observable requestDecision = {}
+  @observable showDenyReasonForm = false
+  @observable denyReason = 0
+  @observable denyPerson = ''
+  @observable DENY_REASONS = [
+    'Не указывать',
+    'В проекте уже достаточно участников',
+    'У реквестера недостаточно скиллов',
+    'У реквестера не те скиллы, которые нужны проекту',
+    'Реквестер не готов вкладывать достаточное количество времени',
+    'Реквестер не может спонсировать проект',
+    'По личным причинам'
+  ]
+
+  @computed get
+  parsedDenyReason() {
+    return this.DENY_REASONS[this.denyReason || 0]
+  }
 
   @computed get
   sortedProjects() {
@@ -32,6 +51,20 @@ export default class ProjectStore {
   @computed get
   sortedUserProjects() {
     return _.sortBy(this.userProjects, 'id')
+  }
+
+  @action.bound
+  initDenyReason(login) {
+    this.denyPerson = login
+    this.denyReason = 0
+    this.showDenyReasonForm = true
+  }
+
+  @action.bound
+  resetDenyReason() {
+    this.denyPerson = ''
+    this.denyReason = 0
+    this.showDenyReasonForm = false
   }
 
   @action.bound
@@ -79,15 +112,12 @@ export default class ProjectStore {
   }
 
   @action.bound
-  requestParticipation(projectId, comment, position) {
+  requestParticipation(projectId, data) {
     this.participationLoading = true
     Rx.Observable.fromPromise(this.app.axios({
       url: `${this.app.API_HOST}/api/project/participation/request/${projectId}`,
       method: 'POST',
-      data: {
-        position,
-        comment
-      }
+      data
     }))
       .finally(() => this.participationLoading = false)
       .subscribe(
@@ -98,6 +128,56 @@ export default class ProjectStore {
         },
         err => {
           console.log(`Error at request participation`, err)
+        }
+      )
+  }
+
+  @action.bound
+  denyParticipationRequest(projectId) {
+    const login = this.denyPerson
+    Rx.Observable.fromPromise(this.app.axios({
+      url: `${this.app.API_HOST}/api/project/participation/owner/deny/${projectId}`,
+      method: 'POST',
+      data: {
+        login,
+        reason: this.parsedDenyReason
+      }
+    }))
+      .subscribe(
+        res => {
+          console.log(`Participant accepted successfully`, res.data)
+        },
+        err => console.log(`Error at request accept as owner`, err),
+        () => {
+          this.requestDecision = {
+            ...this.requestDecision,
+            [login]: 'DENIED'
+          }
+          this.resetDenyReason()
+        }
+      )
+  }
+
+  @action.bound
+  acceptParticipationRequest(projectId, login, cb) {
+    console.log(`Accepting request for project id ${projectId} and login ${login}`)
+    Rx.Observable.fromPromise(this.app.axios({
+      url: `${this.app.API_HOST}/api/project/participation/owner/accept/${projectId}`,
+      method: 'POST',
+      data: { login }
+    }))
+      .subscribe(
+        res => {
+          console.log(`Participant accepted successfully`, res.data)
+        },
+        err => console.log(`Error at request accept as owner`, err),
+        () => {
+          this.requestDecision = {
+            ...this.requestDecision,
+            [login]: 'ACCEPTED'
+          }
+          if (cb) cb()
+          console.log(`Request decision`, toJS(this.requestDecision))
         }
       )
   }

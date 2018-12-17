@@ -3,11 +3,11 @@ import { observable, toJS } from 'mobx'
 import { observer, inject } from 'mobx-react'
 import { Link, withRouter } from 'react-router-dom'
 import {
-  Icon, Input, Checkbox, Button, List, Spin, Avatar, Row, Col
+  Icon, Input, Checkbox, Button, List, Spin, Avatar, Row, Col, Modal, Radio
 } from 'antd';
-import RequestParticipationFormDrawer from "../ui/RequestParticipationFormDrawer"
-import ProjectRequestCard from "../ui/ProjectRequestCard"
 const _ = require('lodash')
+const RadioGroup = Radio.Group;
+
 
 @inject('app', 'auth', 'project')
 @withRouter
@@ -32,9 +32,7 @@ export default class ProjectRequests extends React.Component {
     const { app, auth, project } = this.props
     const proj = project.currentProject
     if (project.loading) return <h1>Loading</h1>
-    console.log(`has requests and no length`, toJS(proj.participation_requests), `has: ${_.has(toJS(proj.participation_requests))}`)
     if (proj.participation_requests && !proj.participation_requests.length) {
-      console.log(`No requests`)
       return (
         <div
           style={{
@@ -64,15 +62,61 @@ export default class ProjectRequests extends React.Component {
         </div>
       )
     }
-    console.log(`Has requests`, toJS(proj))
+    const requestDecisionResult = item => {
+      switch (project.requestDecision[item.login]) {
+        case 'ACCEPTED': return [<div>Одобрено</div>]
+        case 'DENIED': return [<div>Отклонено</div>]
+        default: return [
+          <Button onClick={() => project.acceptParticipationRequest(proj.id, item.login, () => this.forceUpdate())}>Принять</Button>,
+          <Button onClick={() => project.initDenyReason(item.login)}>Отклонить</Button>,
+          <div>{new Date(item.date).toLocaleDateString()}</div>
+        ]
+      }
+    }
+    const radioStyle = {
+      display: 'block',
+      height: '30px',
+      lineHeight: '30px',
+    };
     return (
       <div style={{ padding: 24, background: '#fff', minHeight: 460 }}>
         <h1>Заявки проекта {proj.name}</h1>
-        {
-          proj.participation_requests && proj.participation_requests.map(req => (
-            <ProjectRequestCard request={req} />
-          ))
-        }
+        <List
+          itemLayout="vertical"
+          size="large"
+          dataSource={proj.participation_requests}
+          renderItem={item => (
+            <List.Item
+              key={item.title}
+              actions={requestDecisionResult(item)}
+            >
+              <List.Item.Meta
+                avatar={<Avatar shape={'square'} size={'large'} src={item.avatar_url} />}
+                title={`${item.login} претендует на позицию ${item.position}`}
+                description={item.comment}
+              />
+              <p>Связаться со мной: @{item.contacts.telegram}</p>
+            </List.Item>
+          )}
+        />
+        <Modal
+          title="Отказать в реквесте на участие"
+          visible={project.showDenyReasonForm}
+          onOk={() => project.denyParticipationRequest(project.currentProject.id)}
+          confirmLoading={project.requestLoading}
+          onCancel={project.resetDenyReason}
+        >
+          <p>
+            Хочешь указать причину отказа? Это необязательно, но если укажешь, реквестеру будет понятно, почему ты принял такое решение.
+          </p>
+          <RadioGroup value={project.denyReason} onChange={e => project.denyReason = e.target.value} >
+            {
+              project.DENY_REASONS.map((v, i) => (
+                <Radio style={radioStyle} key={i} value={i}>{v}</Radio>
+              ))
+            }
+          </RadioGroup>
+        </Modal>
       </div>
     )
   }

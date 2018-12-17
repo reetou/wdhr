@@ -29,8 +29,8 @@ export default class ProfileStats extends React.Component {
       fontSize: 24,
     }
     const { auth, app, project, article } = this.props
-    const lg = 6
-    const md = 8
+    const lg = 12
+    const md = 12
     const sm = 12
     const xs = 24
     if (_.isEmpty(auth.user)) return <div />
@@ -47,34 +47,11 @@ export default class ProfileStats extends React.Component {
         </Col>
         <Col xs={xs} sm={sm} md={md} lg={lg}>
           <Card
-            headStyle={{
-              textOverflow: 'unset',
-              textAlign: 'center',
-              whiteSpace: 'pre-wrap',
-            }}
-            title={<CardHeadTitle title={'СТАТЕЙ ЛАЙКНУТО'} />}
-            bordered={false}
-            bodyStyle={cardBodyStyle}
-          >
-            {auth.user.rated_articles.length}
-          </Card>
-        </Col>
-        <Col xs={xs} sm={sm} md={md} lg={lg}>
-          <Card
             title={<CardHeadTitle title={'ПРОЕКТОВ СОЗДАНО'} />}
             bordered={false}
             bodyStyle={cardBodyStyle}
           >
             {project.userProjects.length}
-          </Card>
-        </Col>
-        <Col xs={xs} sm={sm} md={md} lg={lg}>
-          <Card
-            title={<CardHeadTitle title={'СТАТЕЙ НАПИСАНО'} />}
-            bordered={false}
-            bodyStyle={cardBodyStyle}
-          >
-            {article.userArticles.length}
           </Card>
         </Col>
       </Row>

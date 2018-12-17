@@ -27,6 +27,13 @@ router.post('/', checkAuth(), checkForFields(Projects.CREATE_PROPS), asyncFn(asy
   res.send(result)
 }))
 
+router.get('/mocks/request', asyncFn(async (req, res) => {
+  await Projects.requestParticipation(2, 'someone', 'Знаю вью, реакт, ноду, могу помогать с деплоем, деплоил с gitlab ci, consul, travis ci, умею пользоваться ансиблом, всей этой хуйней. Также могу делать код ревью для джунов и тимлидить. Свободен по будням с 18 до 20 и по выходным с 14 до 20', 'Frontend', 'zae_r')
+  await db.removeFromHash('project_2_rejected_participations', 'someone')
+  await db.removeFromHash('project_2_accepted_participations', 'someone')
+  res.send({ created: true })
+}))
+
 router.delete('/:id', checkAuth(), asyncFn(async (req, res) => {
   const id = req.params.id
   if (!id || !_.isInteger(Number(id))) return res.status(400).send({ err: `Invalid id` })

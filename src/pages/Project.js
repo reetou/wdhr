@@ -50,11 +50,16 @@ export default class Project extends React.Component {
           )
         case 2:
           return (
-            <Button>Отказаться от участия в проекте</Button>
+            <React.Fragment>
+              <Button onClick={() => this.props.history.push(`/projects/${proj.id}/participants`)}>Участники</Button>
+            </React.Fragment>
           )
         case 3:
           return (
-            <Button onClick={() => this.props.history.push(`/projects/${proj.id}/requests`)}>Просмотреть заявки</Button>
+            <React.Fragment>
+              <Button onClick={() => this.props.history.push(`/projects/${proj.id}/requests`)}>Просмотреть заявки</Button>
+              <Button onClick={() => this.props.history.push(`/projects/${proj.id}/participants`)}>Участники</Button>
+            </React.Fragment>
           )
         default: return <div>Ошибка, не могу показать кнопку</div>
       }

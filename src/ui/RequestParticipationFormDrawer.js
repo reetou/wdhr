@@ -29,7 +29,7 @@ class RequestParticipationFormDrawer extends React.Component {
     try {
       const data = await this.validate()
       console.log('Requesting participation with data', data)
-      await this.props.project.requestParticipation(this.props.project.currentProject.id, data.comment, data.position)
+      await this.props.project.requestParticipation(this.props.project.currentProject.id, data)
     } catch (e) {
       console.log('Err', e)
       const validationErr = _.at(e, 'response.data.err')[0]
@@ -60,9 +60,12 @@ class RequestParticipationFormDrawer extends React.Component {
       >
         <h1>Форма на участие боййй</h1>
         <Form layout="vertical" hideRequiredMark onSubmit={this.submit}>
-          <Form.Item label="Должность">
+          <Form.Item label="Позиция">
             {getFieldDecorator('position', {
-              rules: [{ required: true, message: 'Введи должность, типа фронтендер или кто ты там' }],
+              rules: [
+                { required: true, message: 'Введи свою позицию в проекте, типа фронтендер или кто ты там' },
+                { max: 30, message: 'Ты там поэму строчишь или что? 30 символов, не больше' }
+              ],
             })(<Input placeholder="Кем хочешь быть в проекте" />)}
           </Form.Item>
           <Form.Item label={'О себе и скиллах'}>
@@ -79,6 +82,14 @@ class RequestParticipationFormDrawer extends React.Component {
                 placeholder="Напиши о себе и своих скиллах, почему решил участвовать в проекте и все такое"
               />
             )}
+          </Form.Item>
+          <Form.Item label="Позиция">
+            {getFieldDecorator('contacts.telegram', {
+              rules: [
+                { required: true, message: 'Как с тобой связаться-то, подельник?' },
+                { max: 30, message: 'Это точно телега?' }
+              ],
+            })(<Input placeholder="Телеграм без собачки" />)}
           </Form.Item>
           <Form.Item>
             <Button
