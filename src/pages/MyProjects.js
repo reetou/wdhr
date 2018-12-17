@@ -6,6 +6,7 @@ import {
   Icon, Input, Checkbox, Button, List, Spin, Avatar
 } from 'antd';
 import BookOpenAnimation from "../ui/BookOpenAnimation"
+import ProjectItem from "../ui/ProjectItem"
 const _ = require('lodash')
 
 
@@ -43,12 +44,16 @@ export default class MyProjects extends React.Component {
           itemLayout={'vertical'}
           dataSource={project.sortedUserProjects}
           renderItem={item => (
-            <List.Item
-              key={item.id}
+            <ProjectItem
+              item={item}
               actions={[
                 <IconText
                   type="like-o"
                   text={item.rating}
+                />,
+                <IconText
+                  type="team"
+                  text={item.members}
                 />,
                 <IconText
                   type={'delete'}
@@ -61,14 +66,7 @@ export default class MyProjects extends React.Component {
                   text={item.is_public ? 'Публичный' : 'Приватный'}
                 />
               ]}
-            >
-              <List.Item.Meta
-                avatar={<Avatar src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png" />}
-                title={<a onClick={() => this.goToProject(item)}>{item.name}</a>}
-                description={item.type.join(', ')}
-              />
-              <div>{item.title}...</div>
-            </List.Item>
+            />
           )}
         >
           {project.loading ? (

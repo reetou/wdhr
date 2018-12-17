@@ -111,7 +111,7 @@ export default class ProjectRequests extends React.Component {
           </p>
           <RadioGroup value={project.denyReason} onChange={e => project.denyReason = e.target.value} >
             {
-              project.DENY_REASONS.map((v, i) => (
+              app.DENY_REASONS.map((v, i) => (
                 <Radio style={radioStyle} key={i} value={i}>{v}</Radio>
               ))
             }

@@ -22,7 +22,7 @@ router.get('/:id', checkAuth(), asyncFn(async (req, res) => {
 
 router.post('/', checkAuth(), checkForFields(Projects.CREATE_PROPS), asyncFn(async (req, res) => {
   const data = req.body
-  const result = await Projects.create(data.name, data.description, data.title, data.estimates, data.type, req.user.username, data.budget, data.is_public)
+  const result = await Projects.create(data.name, data.description, data.title, data.estimates, data.techs, req.user.username, data.budget, data.is_public)
   if (!result) res.status(500).send({ err: `Не могу создать проект` })
   res.send(result)
 }))

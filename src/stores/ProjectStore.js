@@ -28,19 +28,10 @@ export default class ProjectStore {
   @observable showDenyReasonForm = false
   @observable denyReason = 0
   @observable denyPerson = ''
-  @observable DENY_REASONS = [
-    'Не указывать',
-    'В проекте уже достаточно участников',
-    'У реквестера недостаточно скиллов',
-    'У реквестера не те скиллы, которые нужны проекту',
-    'Реквестер не готов вкладывать достаточное количество времени',
-    'Реквестер не может спонсировать проект',
-    'По личным причинам'
-  ]
 
   @computed get
   parsedDenyReason() {
-    return this.DENY_REASONS[this.denyReason || 0]
+    return this.app.DENY_REASONS[this.denyReason]
   }
 
   @computed get

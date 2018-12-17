@@ -54,6 +54,8 @@ export default class AuthStore {
   @action.bound
   doLogin(data) {
     this.user = data
+    this.app.DENY_REASONS = data.participate_deny_reasons
+    this.app.TECHS = data.techs
     this.login = data.login
     this.loggedIn = true
     this.loading = false

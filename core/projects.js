@@ -19,16 +19,21 @@ const PROJECT_EDITS = id => `project_${id}_edits`
 class Projects {
 
   constructor() {
-    this.TYPES = {
-      FRONTEND: 1,
-      BACKEND: 2,
-    }
+    this.DENY_REASONS = [
+      'Не указывать',
+      'В проекте уже достаточно участников',
+      'У реквестера недостаточно скиллов',
+      'У реквестера не те скиллы, которые нужны проекту',
+      'Реквестер не готов вкладывать достаточное количество времени',
+      'Реквестер не может спонсировать проект',
+      'По личным причинам'
+    ]
     this.CREATE_PROPS = {
       name: 'string',
       description: 'string',
       title: 'string',
       estimates: 'number',
-      type: 'array',
+      techs: 'array',
       is_public: 'boolean',
       budget: 'number'
     }
@@ -50,16 +55,9 @@ class Projects {
     let projects = data[1].filter(v => typeof JSON.parse(v) === 'object')
     projects = await Promise.all(_.map(projects, async p => {
       const project = JSON.parse(p)
-      const owner = project.author === login
       return {
         ...project,
-        owner,
-        is_participator: await this.isAcceptedParticipator(login, project.id),
-        is_requested_participation: await this.isRequestedParticipation(login, project.id),
-        rating: await this.getRating(project.id),
-        ...owner ? {
-          participation_requests: await this.getParticipationRequests(project.id)
-        } : {}
+        ...await this.getAdditionalProjectInfo(project, login)
       }
     }))
     projects = _.sortBy(projects, 'date')
@@ -67,21 +65,35 @@ class Projects {
     return { projects: projects.filter(p => p.is_public), cursor: updatedCursor }
   }
 
+  async getAdditionalProjectInfo(project, login) {
+    const owner = project.author === login
+    const is_participator = await this.isAcceptedParticipator(login, project.id)
+    return {
+      owner,
+      is_participator,
+      is_requested_participation: await this.isRequestedParticipation(login, project.id),
+      rating: await this.getRating(project.id),
+      ...owner ? {
+        participation_requests: await this.getParticipationRequests(project.id)
+      } : {},
+      members: await this.getProjectMembersCount(project.id)
+    }
+  }
+
+  async getProjectMembersCount(projectId) {
+    const participants = await db.getHashLen(PROJECT_ACCEPTED_PARTICIPATIONS(projectId))
+    // +1 потому что хозяин проекта не добавлен в хеш с партисипантами
+    return participants + 1
+  }
+
   async getUserProjects(login) {
     let projects = await db.findAllInHash(USER_PROJECTS(login))
     if (!projects) return []
     return await Promise.all(_.map(projects, async p => {
       const project = JSON.parse(p)
-      const owner = project.author === login
       return {
         ...project,
-        owner,
-        is_participator: await this.isAcceptedParticipator(login, project.id),
-        is_requested_participation: await this.isRequestedParticipation(login, project.id),
-        rating: await this.getRating(project.id),
-        ...owner ? {
-          participation_requests: await this.getParticipationRequests(project.id)
-        } : {}
+        ...await this.getAdditionalProjectInfo(project, login)
       }
     }))
   }
@@ -121,11 +133,10 @@ class Projects {
       console.log(`Project is private and returning false because its not an author and not an admin`)
       return false
     }
-    project.owner = project.author === login
-    project.is_participator = await this.isAcceptedParticipator(login, project.id)
-    project.is_requested_participation = await this.isRequestedParticipation(login, project.id)
-    if (project.owner) {
-      project.participation_requests = await this.getParticipationRequests(project.id)
+    const additionals = await this.getAdditionalProjectInfo(project, login)
+    project = {
+      ...project,
+      ...additionals
     }
     // Add unsafe props
     return project
@@ -259,7 +270,7 @@ class Projects {
     return true
   }
 
-  async create(name, description, title, estimates, type, author, budget, is_public) {
+  async create(name, description, title, estimates, techs, author, budget, is_public) {
     const count = await db.getListLen(PROJECTS(), 'create')
     const id = Number(count) + 1
     const data = {
@@ -268,7 +279,7 @@ class Projects {
       description,
       title,
       estimates,
-      type,
+      techs,
       created: Date.now(),
       author,
       budget,

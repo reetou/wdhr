@@ -6,6 +6,7 @@ import {
   Icon, Input, Button, Checkbox, List, Avatar, Spin,
 } from 'antd';
 import InfiniteScroll from 'react-infinite-scroller';
+import ProjectItem from "../ui/ProjectItem"
 const _ = require('lodash')
 
 const IconText = ({ type, text, rated, onClick }) => (
@@ -51,24 +52,21 @@ export default class AllProjects extends React.Component {
           itemLayout={'vertical'}
           dataSource={project.sortedProjects}
           renderItem={item => (
-            <List.Item
-              key={item.id}
+            <ProjectItem
               actions={[
                 <IconText
                   type="like-o"
                   text={item.rating}
                   rated={auth.user.rated.includes(Number(item.id))}
                   onClick={() => project.rate(Number(item.id), auth.user.rated.includes(Number(item.id)))}
+                />,
+                <IconText
+                  type="team"
+                  text={item.members}
                 />
               ]}
-            >
-              <List.Item.Meta
-                avatar={<Avatar src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png" />}
-                title={<a onClick={() => this.goToProject(item)}>{item.name}</a>}
-                description={item.type.join(', ')}
-              />
-              <div>{item.title.substring(0, 100)}...</div>
-            </List.Item>
+              item={item}
+            />
           )}
         >
           {project.loading && (

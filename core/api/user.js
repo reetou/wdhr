@@ -12,7 +12,13 @@ const Article = require('../article')
 const { asyncFn, checkForFields, checkAuth, checkIfLoginUnique, uniqueFields } = require('../middleware')
 
 router.get('/', checkAuth(), asyncFn(async (req, res) => {
-  res.send(await User.getSafeUserData(req.user.username))
+  const user = await User.getSafeUserData(req.user.username)
+  if (!user) return res.status(404).send({ err: `Not found user ${req.user.username}` })
+  res.send({
+    ...user,
+    techs: [],
+    participate_deny_reasons: Projects.DENY_REASONS
+  })
 }))
 
 router.put('/projects/:id', checkAuth(), asyncFn(async (req, res) => {

@@ -11,7 +11,7 @@ const FormItem = Form.Item;
 const TextArea = Input.TextArea
 const Option = Select.Option
 
-@inject('project', 'auth')
+@inject('project', 'auth', 'app')
 @observer
 class CreateProjectForm extends React.Component {
 
@@ -45,7 +45,7 @@ class CreateProjectForm extends React.Component {
     }
   }
   render() {
-    const { auth, project } = this.props
+    const { auth, project, app } = this.props
     const { getFieldDecorator } = this.props.form
     if (project.creating) {
       return <div style={{ textAlign: 'center' }}><BookAppearAnimation/></div>
@@ -87,21 +87,21 @@ class CreateProjectForm extends React.Component {
           )}
         </FormItem>
         <FormItem>
-          {getFieldDecorator('type', {
+          {getFieldDecorator('techs', {
             initialValue: [],
             rules: [
-              { required: true, message: 'Выбери хотя бы одно направление' },
+              { required: true, message: 'Языки и технологии, используемые в проекте' },
             ],
           })(
             <Select
               mode="multiple"
               style={{ width: '100%' }}
-              placeholder="Направления"
+              placeholder="Языки и технологии"
               initialValue={[]}
               onChange={val => console.log('Val', val)}
             >
               {
-                [{ name: 'FRONTEND', value: 1 }, { name: 'BACKEND', value: 2 }]
+                app.TECHS
                   .map(i => <Option key={i.value}>{i.name}</Option>)
               }
             </Select>

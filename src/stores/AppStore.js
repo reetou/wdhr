@@ -21,5 +21,7 @@ export default class AppStore {
 
   @observable history = null
   @observable axios = axiosConfigured
+  @observable DENY_REASONS = []
+  @observable TECHS = []
 
 }
