@@ -76,7 +76,7 @@ class Projects {
   async getAdditionalProjectInfo(project, login) {
     const owner = project.author === login
     const is_participator = await this.isAcceptedParticipator(login, project.id)
-    const repo = await User.getPublicRepoById(project.author, project.repo)
+    const repo = project.repo ? await User.getPublicRepoById(project.author, project.repo) : null
     return {
       owner,
       is_participator,
@@ -85,8 +85,9 @@ class Projects {
       ...owner ? {
         participation_requests: await this.getParticipationRequests(project.id)
       } : {},
-      members: await this.getProjectMembersCount(project.id),
-      repo: repo || null
+      members_count: await this.getProjectMembersCount(project.id),
+      repo,
+      members: await this.getAllParticipants(project.id, project.author)
     }
   }
 
@@ -167,11 +168,6 @@ class Projects {
     return requests
   }
 
-  async getProjectOwnerLogin(id) {
-    const project = await this.getById(id)
-    return project.author
-  }
-
   async requestParticipation(id, login, comment, position, telegram) {
     try {
       const data = {
@@ -186,6 +182,12 @@ class Projects {
     }
   }
 
+  async getParticipationRequest(id, requesterLogin) {
+    let requester = await db.findInHash(PROJECT_PARTICIPATION_REQUESTS(id), requesterLogin)
+    if (!requester) return false
+    return JSON.parse(requester)
+  }
+
   async revokeParticipation(id, login) {
     try {
       await db.removeFromHash(USER_PARTICIPATION_REQUESTS(login), id)
@@ -198,28 +200,49 @@ class Projects {
   }
 
   async acceptParticipator(id, login, title) {
-    const owner = await this.getProjectOwnerLogin(id)
+    const owner = (await this.getById(id, null, false, false, false, false)).author
     if (owner === login) {
+      console.log(`Cannot assign participation on project's author at project id: ${id}, login: ${login}`)
       logError(`Cannot assign participation on project's author at project id: ${id}, login: ${login}`)
       return false
     }
+    const request = await this.getParticipationRequest(id, login)
     await this.revokeParticipation(id, login)
     await db.addToHash(PROJECT_ACCEPTED_PARTICIPATIONS(id), login, JSON.stringify({
       login,
       date: Date.now(),
-      title: title || ''
+      title: title || '',
+      position: request.position
     }))
     return true
   }
 
-  async getParticipator(id, login) {
+  async getParticipant(id, login) {
     let participator = await db.findInHash(PROJECT_ACCEPTED_PARTICIPATIONS(id), login)
     if (!participator) return false
     return JSON.parse(participator)
   }
 
+  async getAllParticipants(id, author) {
+    let members = await db.findAllInHash(PROJECT_ACCEPTED_PARTICIPATIONS(id))
+    const owner = await User.getSafeUserData(author)
+    owner.project_owner = true
+    if (!members) return [owner]
+    const all = await Promise.all(_.map(members, JSON.parse).map(m => m.login).map(async l => {
+      const user = await User.getSafeUserData(l)
+      const participantData = await this.getParticipant(id, l)
+      return {
+        ...user,
+        position: participantData.position,
+        joined: participantData.date
+      }
+    }))
+
+    return all.concat(owner)
+  }
+
   async denyParticipator(id, login, reason) {
-    const owner = await this.getProjectOwnerLogin(id)
+    const owner = (await this.getById(id, null, false, false, false, false)).author
     if (owner === login) {
       logError(`Cannot deny participation on project's author at project id: ${id}, login: ${login}`)
       return false

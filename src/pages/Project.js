@@ -58,7 +58,7 @@ export default class Project extends React.Component {
           return (
             <React.Fragment>
               <Button onClick={() => this.props.history.push(`/projects/${proj.id}/requests`)}>Просмотреть заявки</Button>
-              <Button onClick={() => this.props.history.push(`/projects/${proj.id}/participants`)}>Участники</Button>
+              <Button onClick={() => this.props.history.push(`/projects/${proj.id}/members`)}>Участники</Button>
             </React.Fragment>
           )
         default: return <div>Ошибка, не могу показать кнопку</div>
@@ -76,7 +76,7 @@ export default class Project extends React.Component {
                   <Icon
                     type={'team'}
                   />
-                  <span>{proj.members}</span>
+                  <span>{proj.members_count}</span>
                 </Button> : null
               }
               <h1 style={{ marginBottom: 0, marginLeft: 10 }}>{_.capitalize(proj.name)} purojecto</h1>

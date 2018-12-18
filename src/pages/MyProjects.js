@@ -53,7 +53,7 @@ export default class MyProjects extends React.Component {
                 />,
                 <IconText
                   type="team"
-                  text={item.members}
+                  text={item.members_count}
                 />,
                 <IconText
                   type={'delete'}

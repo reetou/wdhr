@@ -63,7 +63,7 @@ export default class ProjectRequests extends React.Component {
       )
     }
     const requestDecisionResult = item => {
-      switch (project.requestDecision[item.login]) {
+      switch (project.requestDecision[`project_${proj.id}_login_${item.login}`]) {
         case 'ACCEPTED': return [<div>Одобрено</div>]
         case 'DENIED': return [<div>Отклонено</div>]
         default: return [

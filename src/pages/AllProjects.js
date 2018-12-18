@@ -66,7 +66,7 @@ export default class AllProjects extends React.Component {
                 />,
                 <IconText
                   type="team"
-                  text={item.members}
+                  text={item.members_count}
                 />
               ]}
               item={item}

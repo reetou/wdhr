@@ -46,6 +46,18 @@ export default class ProjectStore {
   }
 
   @computed get
+  projectMembers() {
+    if (!this.currentProject.members) return []
+    return this.currentProject.members.filter(v => !v.project_owner)
+  }
+
+  @computed get
+  projectOwner() {
+    if (!this.currentProject.name) return {}
+    return this.currentProject.members.filter(v => v.project_owner)[0]
+  }
+
+  @computed get
   sortedUserProjects() {
     return _.sortBy(this.userProjects, 'id')
   }
@@ -105,7 +117,10 @@ export default class ProjectStore {
         this.app.history.push('/myprojects')
         console.log('At finally, set creating to false', this.creating)
       })
-      .subscribe(v => console.log('V???', v), err => console.log('Error at create project', err), (d) => console.log('complete', d))
+      .subscribe(
+        v => console.log(`CREATED PROJECT WITH ${v.data.id}`, v),
+        err => console.log('Error at create project', err),
+        (d) => console.log('complete', d))
   }
 
   @action.bound
@@ -148,7 +163,7 @@ export default class ProjectStore {
         () => {
           this.requestDecision = {
             ...this.requestDecision,
-            [login]: 'DENIED'
+            [`project_${projectId}_login_${login}`]: 'DENIED'
           }
           this.resetDenyReason()
         }
@@ -171,7 +186,7 @@ export default class ProjectStore {
         () => {
           this.requestDecision = {
             ...this.requestDecision,
-            [login]: 'ACCEPTED'
+            [`project_${projectId}_login_${login}`]: 'ACCEPTED'
           }
           if (cb) cb()
           console.log(`Request decision`, toJS(this.requestDecision))
