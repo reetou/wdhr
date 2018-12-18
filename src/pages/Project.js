@@ -33,7 +33,7 @@ export default class Project extends React.Component {
   }
 
   render() {
-    const { project } = this.props
+    const { project, app } = this.props
     if (project.loading) return <h1>Loading</h1>
     const proj = project.currentProject
     const participateButton = () => {
@@ -64,13 +64,28 @@ export default class Project extends React.Component {
         default: return <div>Ошибка, не могу показать кнопку</div>
       }
     }
+
     return (
       <div style={{ padding: 24, background: '#fff', minHeight: 460 }}>
         <RequestParticipationFormDrawer />
         <Row>
           <Col xs={24} sm={16}>
-            <h1>{_.capitalize(proj.name)} purojecto</h1>
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+              {
+                proj.owner ? <Button disabled>
+                  <Icon
+                    type={'team'}
+                  />
+                  <span>{proj.members}</span>
+                </Button> : null
+              }
+              <h1 style={{ marginBottom: 0, marginLeft: 10 }}>{_.capitalize(proj.name)} purojecto</h1>
+            </div>
             <p>by {proj.author}</p>
+            <p>Стек и технологии: {project.parsedTechs}</p>
+            <p>Рейтинг: {proj.rating}</p>
+            <h3>{proj.title}</h3>
+            <p>{proj.description}</p>
           </Col>
           <Col xs={24} sm={8}>
             {participateButton()}

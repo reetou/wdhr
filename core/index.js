@@ -10,6 +10,7 @@ const passport = require('passport');
 const GitHubStrategy = require('passport-github2').Strategy;
 const { asyncFn } = require('./middleware')
 const RedisStore = require('connect-redis')(session);
+const axios = require('axios')
 const DEBUG = process.env.NODE_ENV !== 'production'
 const REDIRECT_URL = DEBUG ? 'http://localhost:4000' : 'http://kokoro.codes'
 
@@ -52,6 +53,8 @@ const start = function() {
   });
 
   passport.deserializeUser(function(obj, done) {
+    console.log(`Deserialized`)
+    User.updatePublicRepos(obj._json.repos_url, obj.username)
     done(null, obj);
   });
 

@@ -15,6 +15,7 @@ const PROJECTS = () => `projects`
 const PROJECT_ACCEPTED_PARTICIPATIONS = id => `project_${id}_accepted_participations`
 const PROJECT_REJECTED_PARTICIPATIONS = id => `project_${id}_rejected_participations`
 const PROJECT_EDITS = id => `project_${id}_edits`
+const PROJECTS_TECHS = () => `projects_techs`
 
 class Projects {
 
@@ -38,6 +39,12 @@ class Projects {
       budget: 'number'
     }
     this.ALLOWED_EDIT_PROPS = ['is_public', 'name', 'description', 'title', 'budget']
+  }
+
+  async getTechs() {
+    let techs = await db.findAllInHash(PROJECTS_TECHS())
+    if (!techs) return []
+    return _.map(techs, JSON.parse).filter(t => t.active)
   }
 
   async isRequestedParticipation(login, projectId) {

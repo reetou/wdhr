@@ -16,7 +16,7 @@ router.get('/', checkAuth(), asyncFn(async (req, res) => {
   if (!user) return res.status(404).send({ err: `Not found user ${req.user.username}` })
   res.send({
     ...user,
-    techs: [],
+    techs: await Projects.getTechs(),
     participate_deny_reasons: Projects.DENY_REASONS
   })
 }))

@@ -3,7 +3,12 @@ const sha1 = require('sha1')
 const _ = require('lodash')
 const { AUTH } = require('./config')
 const shortID = require('shortid')
+const axios = require('axios')
+const fs = require('fs')
+const path = require('path')
 const logUserError = require('debug')('user:error')
+
+const USER_PUBLIC_REPOS = login => `user_${login}_public_repos`
 
 class User {
 
@@ -34,7 +39,35 @@ class User {
     user.rated = await this.getRatedProjects(login)
     user.rated_articles = await this.getRatedArticles(login)
     delete user.github_id
+    user.public_repos = await this.getPublicRepos(login)
+    user.public_repos_names = user.public_repos.map(r => r.name)
     return user
+  }
+
+  async updatePublicRepos(url, login) {
+    const token = await db.findInHash('tokens', sha1(login))
+    if (!token) return
+    const res = await axios({
+      method: 'GET',
+      url: `${url}?access_token=${token}`
+    })
+    const updatedRepos = await Promise.all(res.data.filter(r => r.owner.login === login && !r.fork && !r.private).map(async r => {
+      const updated = _.cloneDeep(r)
+      delete updated.owner
+      await db.addToHash(USER_PUBLIC_REPOS(login), r.id, JSON.stringify(r))
+      return updated
+    }))
+    const currentRepos = await this.getPublicRepos(login)
+    const updatedReposNames = updatedRepos.map(r => r.name)
+    const currentReposNames = currentRepos.map(r => r.name)
+    const reposNamesToDelete = currentReposNames.filter(v => !updatedReposNames.includes(v))
+    await Promise.all(reposNamesToDelete.map(async name => await db.removeFromHash(USER_PUBLIC_REPOS(login), name)))
+  }
+
+  async getPublicRepos(login) {
+    let repos = await db.findAllInHash(USER_PUBLIC_REPOS(login))
+    if (!repos) return []
+    return _.map(repos, JSON.parse)
   }
 
   async register(data) {

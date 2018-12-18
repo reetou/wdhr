@@ -102,11 +102,37 @@ class CreateProjectForm extends React.Component {
             >
               {
                 app.TECHS
-                  .map(i => <Option key={i.value}>{i.name}</Option>)
+                  .map(i => <Option key={i.id} value={i.id}>{i.name}</Option>)
               }
             </Select>
           )}
         </FormItem>
+        {
+          auth.user.public_repos && auth.user.public_repos.length ?
+          <FormItem>
+            <p style={{ margin: 0 }}>Гитхаб репо</p>
+            {getFieldDecorator('repo', {
+              initialValue: '',
+              rules: [
+                { required: true, message: 'Уточни, есть ли проект для репо' },
+              ],
+            })(
+              <Select
+                showSearch
+                optionFilterProp="children"
+                style={{ width: '100%' }}
+                placeholder="Гитхаб репозиторий"
+                onChange={val => console.log('Val', val)}
+              >
+                <Option value={'0'}>Нет</Option>
+                {
+                  auth.user.public_repos
+                    .map((i, index) => <Option value={i.id} key={index}>{i.name}</Option>)
+                }
+              </Select>
+            )}
+          </FormItem> : null
+        }
         <FormItem>
           <div>Бюджет</div>
           {getFieldDecorator('budget', {

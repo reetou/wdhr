@@ -27,6 +27,10 @@ export default class ProjectItem extends React.Component {
 
   render() {
     const { app, auth, project, actions, item } = this.props
+
+    const stackItems = item.techs ? item.techs.map(i => app.TECHS[i].name).join(', ') : ''
+    const stack = stackItems.length > 59 ? `${stackItems.substring(0, 59)}...` : stackItems
+
     return (
       <List.Item
         key={item.id}
@@ -35,7 +39,7 @@ export default class ProjectItem extends React.Component {
         <List.Item.Meta
           avatar={<Avatar src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png" />}
           title={<a onClick={() => this.goToProject(item)}>{item.name}</a>}
-          description={item.techs ? item.techs.join(', ') : ''}
+          description={stack}
         />
         <div>{item.title.substring(0, 100)}...</div>
       </List.Item>

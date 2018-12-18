@@ -40,6 +40,12 @@ export default class ProjectStore {
   }
 
   @computed get
+  parsedTechs() {
+    if (!this.currentProject.techs) return []
+    return this.currentProject.techs.map(v => this.app.TECHS[v].name).join(', ')
+  }
+
+  @computed get
   sortedUserProjects() {
     return _.sortBy(this.userProjects, 'id')
   }
