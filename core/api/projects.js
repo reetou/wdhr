@@ -37,14 +37,6 @@ router.get('/mocks/request', asyncFn(async (req, res) => {
   res.send({ created: true })
 }))
 
-router.delete('/:id', checkAuth(), asyncFn(async (req, res) => {
-  const id = req.params.id
-  if (!id || !_.isInteger(Number(id))) return res.status(400).send({ err: `Invalid id` })
-  const result = await Projects.remove(id, req.user.username)
-  if (!result) return res.status(403).send({ err: `Deleting not own project or no project ${id} found` })
-  res.send({ id, deleted: true })
-}))
-
 router.post('/rate', checkAuth(), checkForFields({ id: 'number' }), asyncFn(async (req, res) => {
   const updatedRating = await Projects.uprate(req.body.id, req.user.username)
   res.send({ rating: updatedRating })
@@ -53,6 +45,14 @@ router.post('/rate', checkAuth(), checkForFields({ id: 'number' }), asyncFn(asyn
 router.delete('/rate', checkAuth(), checkForFields({ id: 'number' }), asyncFn(async (req, res) => {
   const updatedRating = await Projects.downrate(req.body.id, req.user.username)
   res.send({ rating: updatedRating })
+}))
+
+router.delete('/:id', checkAuth(), asyncFn(async (req, res) => {
+  const id = req.params.id
+  if (!id || !_.isInteger(Number(id))) return res.status(400).send({ err: `Invalid id` })
+  const result = await Projects.remove(id, req.user.username)
+  if (!result) return res.status(403).send({ err: `Deleting not own project or no project ${id} found` })
+  res.send({ id, deleted: true })
 }))
 
 module.exports = router

@@ -6,11 +6,11 @@ const shortID = require('shortid')
 const logError = require('debug')('article:error')
 
 
-const USER_RATED_ARTICLES = login => `user_${login}_rated_projects`
+const USER_RATED_ARTICLES = login => `user_${login}_rated_articles`
 const ARTICLE_RATING = articleId => `article_${articleId}_rating`
-const USER_ARTICLES = login => `user_${login}_projects`
+const USER_ARTICLES = login => `user_${login}_articles`
 const ARTICLES = () => `articles`
-const ARTICLE_EDITS = articleId => `project_${articleId}_edits`
+const ARTICLE_EDITS = articleId => `article_${articleId}_edits`
 
 
 class Article {

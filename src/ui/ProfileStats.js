@@ -51,7 +51,7 @@ export default class ProfileStats extends React.Component {
             bordered={false}
             bodyStyle={cardBodyStyle}
           >
-            {project.userProjects.length}
+            {auth.user.project_ownership_count}
           </Card>
         </Col>
       </Row>

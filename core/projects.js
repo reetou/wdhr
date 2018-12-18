@@ -129,7 +129,7 @@ class Projects {
     return await db.getHashLen(PROJECT_RATING(id))
   }
 
-  async getById(id, login, checkOwner = false, checkPrivacy = true, admin = false) {
+  async getById(id, login, checkOwner = false, checkPrivacy = true, admin = false, withAdditionals = true) {
     console.log(`Will get project by id`, id)
     let project = await db.findInHash(PROJECTS(), id)
     if (!project) project = await db.findInHash(USER_PROJECTS(login), id)
@@ -143,10 +143,12 @@ class Projects {
       console.log(`Project is private and returning false because its not an author and not an admin`)
       return false
     }
-    const additionals = await this.getAdditionalProjectInfo(project, login)
-    project = {
-      ...project,
-      ...additionals
+    if (withAdditionals) {
+      const additionals = await this.getAdditionalProjectInfo(project, login)
+      project = {
+        ...project,
+        ...additionals
+      }
     }
     // Add unsafe props
     return project
@@ -232,7 +234,7 @@ class Projects {
   }
 
   async edit(id, login, data) {
-    let project = await this.getById(id, login, true)
+    let project = await this.getById(id, login, true, true, false, false)
     const oldEdit = JSON.stringify(project)
     if (!project) {
       console.log(`No project found`)

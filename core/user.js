@@ -9,6 +9,9 @@ const path = require('path')
 const logUserError = require('debug')('user:error')
 
 const USER_PUBLIC_REPOS = login => `user_${login}_public_repos`
+const USER_RATED_PROJECTS = login => `user_${login}_rated_projects`
+const USER_RATED_ARTICLES = login => `user_${login}_rated_articles`
+const USER_PROJECTS = login => `user_${login}_projects`
 
 class User {
 
@@ -24,12 +27,12 @@ class User {
   }
 
   async getRatedProjects(login) {
-    const rated = await db.findAllInHash(`project_${login}_rated`)
+    const rated = await db.findAllInHash(USER_RATED_PROJECTS(login))
     return _.map(rated, v => JSON.parse(v).id)
   }
 
   async getRatedArticles(login) {
-    const rated = await db.findAllInHash(`article_${login}_rated`)
+    const rated = await db.findAllInHash(USER_RATED_ARTICLES(login))
     return _.map(rated, v => JSON.parse(v).id)
   }
 
@@ -39,9 +42,14 @@ class User {
     user.rated = await this.getRatedProjects(login)
     user.rated_articles = await this.getRatedArticles(login)
     delete user.github_id
+    user.project_ownership_count = await this.getUserProjectsCount(login)
     user.public_repos = await this.getPublicRepos(login)
     user.public_repos_names = user.public_repos.map(r => r.name)
     return user
+  }
+
+  async getUserProjectsCount(login) {
+    return await db.getHashLen(USER_PROJECTS(login))
   }
 
   async updatePublicRepos(url, login) {
@@ -72,7 +80,10 @@ class User {
 
   async getPublicRepoById(login, id) {
     let repo = await db.findInHash(USER_PUBLIC_REPOS(login), id)
-    if (!repo) return false
+    if (!repo) {
+      console.log(`Cannot find repo by id ${id} for login ${login}`)
+      return false
+    }
     return JSON.parse(repo)
   }
 
