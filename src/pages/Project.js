@@ -84,6 +84,9 @@ export default class Project extends React.Component {
             <p>by {proj.author}</p>
             <p>Стек и технологии: {project.parsedTechs}</p>
             <p>Рейтинг: {proj.rating}</p>
+            {
+              proj.repo && <p><a href={proj.repo.html_url} target={'_blank'}>{proj.repo.html_url}</a></p>
+            }
             <h3>{proj.title}</h3>
             <p>{proj.description}</p>
           </Col>

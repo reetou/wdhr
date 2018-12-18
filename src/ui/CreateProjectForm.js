@@ -107,32 +107,29 @@ class CreateProjectForm extends React.Component {
             </Select>
           )}
         </FormItem>
-        {
-          auth.user.public_repos && auth.user.public_repos.length ?
-          <FormItem>
-            <p style={{ margin: 0 }}>Гитхаб репо</p>
-            {getFieldDecorator('repo', {
-              initialValue: '',
-              rules: [
-                { required: true, message: 'Уточни, есть ли проект для репо' },
-              ],
-            })(
-              <Select
-                showSearch
-                optionFilterProp="children"
-                style={{ width: '100%' }}
-                placeholder="Гитхаб репозиторий"
-                onChange={val => console.log('Val', val)}
-              >
-                <Option value={'0'}>Нет</Option>
-                {
-                  auth.user.public_repos
-                    .map((i, index) => <Option value={i.id} key={index}>{i.name}</Option>)
-                }
-              </Select>
-            )}
-          </FormItem> : null
-        }
+        <FormItem>
+          <p style={{ margin: 0 }}>Гитхаб репо</p>
+          {getFieldDecorator('repo', {
+            initialValue: '',
+            rules: [
+              { required: true, message: 'Уточни, есть ли проект для репо ' },
+            ],
+          })(
+            <Select
+              showSearch
+              optionFilterProp="children"
+              style={{ width: '100%' }}
+              placeholder="Гитхаб репозиторий"
+              onChange={val => console.log('Val', val)}
+            >
+              <Option value={0}>Нет</Option>
+              {
+                auth.user.public_repos
+                  .map((i, index) => <Option value={i.id} key={index}>{i.name}</Option>)
+              }
+            </Select>
+          )}
+        </FormItem>
         <FormItem>
           <div>Бюджет</div>
           {getFieldDecorator('budget', {

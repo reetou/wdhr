@@ -70,6 +70,12 @@ class User {
     return _.map(repos, JSON.parse)
   }
 
+  async getPublicRepoById(login, id) {
+    let repo = await db.findInHash(USER_PUBLIC_REPOS(login), id)
+    if (!repo) return false
+    return JSON.parse(repo)
+  }
+
   async register(data) {
     await db.addToHash('users', sha1(data.login), JSON.stringify({
       login: data.login,

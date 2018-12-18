@@ -36,6 +36,7 @@ class Projects {
       estimates: 'number',
       techs: 'array',
       is_public: 'boolean',
+      repo: 'number',
       budget: 'number'
     }
     this.ALLOWED_EDIT_PROPS = ['is_public', 'name', 'description', 'title', 'budget']
@@ -75,6 +76,7 @@ class Projects {
   async getAdditionalProjectInfo(project, login) {
     const owner = project.author === login
     const is_participator = await this.isAcceptedParticipator(login, project.id)
+    const repo = await User.getPublicRepoById(project.author, project.repo)
     return {
       owner,
       is_participator,
@@ -83,7 +85,8 @@ class Projects {
       ...owner ? {
         participation_requests: await this.getParticipationRequests(project.id)
       } : {},
-      members: await this.getProjectMembersCount(project.id)
+      members: await this.getProjectMembersCount(project.id),
+      repo: repo || null
     }
   }
 
@@ -133,7 +136,7 @@ class Projects {
     if (!project) return false
     project = JSON.parse(project)
     if (checkOwner && project.author !== login) {
-      console.log(`Checking owner and its not it`)
+      console.log(`Checking owner and its not it: ${project.author} !== ${login}`)
       return false
     }
     if (checkPrivacy && !project.is_public && project.author !== login && !admin) {
@@ -154,13 +157,11 @@ class Projects {
     requests = await Promise.all(_.map(requests, async req => {
       const request = JSON.parse(req)
       const user = await User.getSafeUserData(request.login)
-      console.log(`Get user by login`, user)
       return {
         ...request,
         ...user ? user : {}
       }
     }))
-    console.log(`Getting participation request`, requests)
     return requests
   }
 
@@ -233,7 +234,10 @@ class Projects {
   async edit(id, login, data) {
     let project = await this.getById(id, login, true)
     const oldEdit = JSON.stringify(project)
-    if (!project) return false
+    if (!project) {
+      console.log(`No project found`)
+      return false
+    }
     _.forEach(data, (value, key) => {
       if (this.ALLOWED_EDIT_PROPS.includes(key)) project[key] = value
     })
@@ -242,7 +246,10 @@ class Projects {
       console.log(`Project not edited, login: ${login}, id: ${id}`)
     }
     const result = await this.save(project)
-    if (!result) return false
+    if (!result) {
+      console.log(`Cannot save`)
+      return false
+    }
     return result
   }
 
@@ -277,7 +284,7 @@ class Projects {
     return true
   }
 
-  async create(name, description, title, estimates, techs, author, budget, is_public) {
+  async create(name, description, title, estimates, techs, author, budget, is_public, repo) {
     const count = await db.getListLen(PROJECTS(), 'create')
     const id = Number(count) + 1
     const data = {
@@ -290,7 +297,8 @@ class Projects {
       created: Date.now(),
       author,
       budget,
-      is_public
+      is_public,
+      repo: repo > 0 ? repo : ''
     }
     await db.addToHash(USER_PROJECTS(author), id, JSON.stringify(data))
     if (data.is_public) {

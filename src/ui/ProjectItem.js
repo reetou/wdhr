@@ -37,8 +37,11 @@ export default class ProjectItem extends React.Component {
         actions={actions}
       >
         <List.Item.Meta
-          avatar={<Avatar src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png" />}
-          title={<a onClick={() => this.goToProject(item)}>{item.name}</a>}
+          avatar={<Avatar src="https://i.imgur.com/1J24uLB.png" />}
+          title={<React.Fragment>
+            { item.repo && <Icon onClick={() => this.goToProject(item)} style={{ marginRight: 5, cursor: 'pointer' }} type={'github'} /> }
+            <a onClick={() => this.goToProject(item)}>{item.name}</a>
+          </React.Fragment>}
           description={stack}
         />
         <div>{item.title.substring(0, 100)}...</div>

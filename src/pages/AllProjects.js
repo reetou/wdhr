@@ -9,8 +9,11 @@ import InfiniteScroll from 'react-infinite-scroller';
 import ProjectItem from "../ui/ProjectItem"
 const _ = require('lodash')
 
-const IconText = ({ type, text, rated, onClick }) => (
-  <span style={rated ? { color: 'green' } : {}} onClick={onClick}>
+const IconText = ({ type, text, rated, onClick, inactiveColor }) => (
+  <span style={{
+    ...inactiveColor ? { color: '#40a9ff' } : {},
+    ...rated ? { color: 'green' } : {  }
+  }} onClick={onClick}>
     <Icon type={type} style={{ marginRight: 8 }} />
     {text}
   </span>
@@ -55,6 +58,7 @@ export default class AllProjects extends React.Component {
             <ProjectItem
               actions={[
                 <IconText
+                  inactiveColor
                   type="like-o"
                   text={item.rating}
                   rated={auth.user.rated.includes(Number(item.id))}

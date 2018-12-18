@@ -6,6 +6,7 @@ const db = require('../db')
 const { AUTH } = require('../config')
 const _ = require('lodash')
 const Projects = require('../projects')
+const User = require('../user')
 const { asyncFn, checkForFields, checkAuth } = require('../middleware')
 
 router.get('/', checkAuth(), asyncFn(async (req, res) => {
@@ -22,7 +23,9 @@ router.get('/:id', checkAuth(), asyncFn(async (req, res) => {
 
 router.post('/', checkAuth(), checkForFields(Projects.CREATE_PROPS), asyncFn(async (req, res) => {
   const data = req.body
-  const result = await Projects.create(data.name, data.description, data.title, data.estimates, data.techs, req.user.username, data.budget, data.is_public)
+  const public_repos = await User.getPublicRepos(req.user.username)
+  if (data.repo !== 0 && !public_repos.map(r => Number(r.id)).includes(data.repo)) return res.status(400).send({ err: `User ${req.user.username} has no public repo ${data.repo}` })
+  const result = await Projects.create(data.name, data.description, data.title, data.estimates, data.techs, req.user.username, data.budget, data.is_public, data.repo)
   if (!result) res.status(500).send({ err: `Не могу создать проект` })
   res.send(result)
 }))
