@@ -1,8 +1,8 @@
 import { observable, action, computed, toJS } from 'mobx'
 import * as Rx from 'rxjs/Rx'
-import * as mobxUtils from 'mobx-utils'
-import axios from 'axios'
 import * as _ from 'lodash'
+import { message } from 'antd'
+
 
 const sleep = time => new Promise(resolve => setTimeout(() => resolve(), time))
 
@@ -119,8 +119,11 @@ export default class ProjectStore {
       })
       .subscribe(
         v => console.log(`CREATED PROJECT WITH ${v.data.id}`, v),
-        err => console.log('Error at create project', err),
-        (d) => console.log('complete', d))
+        err => {
+          console.error(`Error at create project`, err)
+          message.error('Ошибка при создании проекта', 3)
+        },
+        () => message.success(`Проект ${data.name} создан успешно.`, 2.5))
   }
 
   @action.bound
@@ -139,8 +142,10 @@ export default class ProjectStore {
           this.currentProject = res.data
         },
         err => {
+          message.error('Ошибка при отправке реквеста')
           console.log(`Error at request participation`, err)
-        }
+        },
+        () => message.success('Запрос отправлен успешно')
       )
   }
 
@@ -159,7 +164,10 @@ export default class ProjectStore {
         res => {
           console.log(`Participant accepted successfully`, res.data)
         },
-        err => console.log(`Error at request accept as owner`, err),
+        err => {
+          console.log(`Error at request accept as owner`, err)
+          message.error('Не удалось отклонить реквест')
+        },
         () => {
           this.requestDecision = {
             ...this.requestDecision,
@@ -182,12 +190,16 @@ export default class ProjectStore {
         res => {
           console.log(`Participant accepted successfully`, res.data)
         },
-        err => console.log(`Error at request accept as owner`, err),
+        err => {
+          console.log(`Error at request accept as owner`, err)
+          message.error('Не удалось принять реквест')
+        },
         () => {
           this.requestDecision = {
             ...this.requestDecision,
             [`project_${projectId}_login_${login}`]: 'ACCEPTED'
           }
+          message.success('Запрос успешно одобрен')
           if (cb) cb()
           console.log(`Request decision`, toJS(this.requestDecision))
         }
@@ -210,7 +222,9 @@ export default class ProjectStore {
         },
         err => {
           console.log(`Error at request participation`, err)
-        }
+          message.error('Не удалось отозвать заявку')
+        },
+        () => message.success('Реквест успешно отозван')
       )
   }
 
@@ -226,8 +240,12 @@ export default class ProjectStore {
           this.projects = []
           console.log('Deleted project', v.data)
         },
-        err => console.log('Err at delete project', err),
+        err => {
+          message.error('Не удалось удалить проект')
+          console.log('Err at delete project', err)
+        },
         () => {
+          message.success('Проект удален успешно')
           this.loadAll(false)
           this.loadUserProjects(true)
         }
@@ -247,8 +265,12 @@ export default class ProjectStore {
           this.projects = []
           console.log('Edited project', v.data)
         },
-        err => console.log('Err at delete project', err),
+        err => {
+          message.error('Не удалось отредактировать проект')
+          console.log('Err at delete project', err)
+        },
         () => {
+          message.success('Готово', 0.5)
           this.loadAll(false)
           this.loadUserProjects(true)
         }
@@ -336,7 +358,10 @@ export default class ProjectStore {
       })
       .subscribe(
         res => console.log('Received response', res),
-        e => console.log('Error at rate', e),
+        e => {
+          console.log('Error at rate', e)
+          message.error(down ? 'Не удалось отменить рейт' : 'Не удалось рейтануть проект')
+        },
         () => {
           this.projects = this.projects.map(p => {
             if (Number(p.id) === Number(id)) {
@@ -348,9 +373,11 @@ export default class ProjectStore {
           if (down) {
             const index = this.auth.user.rated.indexOf(Number(id))
             this.auth.user.rated.splice(index, 1)
+            message.success('OK', 0.3)
             return
           }
           this.auth.user.rated.push(Number(id))
+          message.success('OK', 0.3)
         }
       )
   }
