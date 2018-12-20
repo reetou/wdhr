@@ -15,7 +15,7 @@ import { withRouter } from "react-router-dom"
 import DevTools from 'mobx-react-devtools'
 import About from "./About"
 import Profile from './Profile'
-import Register from './Register'
+import Pusher from '../pusher_front'
 import Login from './Login'
 import MyProjects from "./MyProjects"
 import AllProjects from "./AllProjects"
@@ -43,6 +43,9 @@ class CustomRedirecter extends React.Component {
     }
     console.log(`MATCH DATA ROUTER`, this.props.match)
     console.log(`LOCATION DATA ROUTER`, this.props.location)
+    if (auth) {
+      await Pusher.init(this.props.auth.user.login, this.props.app.PUSHER_KEY)
+    }
     if (auth && !project.userProjects.length) {
       await this.props.project.loadUserProjects()
       await this.props.article.loadUserArticles()
@@ -67,6 +70,7 @@ export default class MainPage extends React.Component {
 
   componentWillMount() {
     this.props.app.history = this.props.history
+
   }
 
   render() {

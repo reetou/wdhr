@@ -23,5 +23,6 @@ export default class AppStore {
   @observable axios = axiosConfigured
   @observable DENY_REASONS = []
   @observable TECHS = []
+  @observable PUSHER_KEY = ''
 
 }

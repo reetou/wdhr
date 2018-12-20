@@ -4,7 +4,7 @@ const sha1 = require('sha1')
 const shortID = require('shortid')
 const db = require('../db')
 const _ = require('lodash')
-const { AUTH } = require('../config')
+const { AUTH, PUSHER } = require('../config')
 const User = require('../user')
 const Projects = require('../projects')
 const passport = require('passport')
@@ -16,6 +16,7 @@ router.get('/', checkAuth(), asyncFn(async (req, res) => {
   if (!user) return res.status(404).send({ err: `Not found user ${req.user.username}` })
   res.send({
     ...user,
+    pusher: PUSHER.KEY,
     techs: await Projects.getTechs(),
     participate_deny_reasons: Projects.DENY_REASONS
   })

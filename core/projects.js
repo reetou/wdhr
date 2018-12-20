@@ -2,6 +2,7 @@ const db = require('./db')
 const sha1 = require('sha1')
 const { AUTH } = require('./config')
 const shortID = require('shortid')
+const pusher = require('./pusher_back')
 const _ = require('lodash')
 const User = require('./user')
 const logError = require('debug')('projects:error')
@@ -111,18 +112,30 @@ class Projects {
 
   async uprate(id, login) {
     if (!id || !login) return
+    const project = await this.getById(id)
+    if (!project) {
+      console.log(`At uprate did not find project ${id}`)
+      return false
+    }
     await db.addToHash(PROJECT_RATING(id), login, JSON.stringify({
       date: Date.now(),
       login,
     }))
     await db.addToHash(USER_RATED_PROJECTS(login), id, JSON.stringify({ date: Date.now(), id }))
+    await pusher.projectRate(project.author, { login, name: project.name })
     return await db.getHashLen(PROJECT_RATING(id))
   }
 
   async downrate(id, login) {
     if (!id || !login) return
+    const project = await this.getById(id)
+    if (!project) {
+      console.log(`At uprate did not find project ${id}`)
+      return false
+    }
     await db.removeFromHash(PROJECT_RATING(id), login)
     await db.removeFromHash(USER_RATED_PROJECTS(login), id)
+    await pusher.projectRateRevert(project.author, { login, name: project.name })
     return await db.getHashLen(PROJECT_RATING(id))
   }
 
@@ -133,6 +146,7 @@ class Projects {
   async getById(id, login, checkOwner = false, checkPrivacy = true, admin = false, withAdditionals = true) {
     console.log(`Will get project by id`, id)
     let project = await db.findInHash(PROJECTS(), id)
+    if (!project && !login) return false
     if (!project) project = await db.findInHash(USER_PROJECTS(login), id)
     if (!project) return false
     project = JSON.parse(project)
@@ -173,8 +187,11 @@ class Projects {
       const data = {
         login, position, comment, contacts: { telegram }, date: Date.now()
       }
+      const project = await this.getById(id, login, false)
+      if (!project) return false
       await db.addToHash(USER_PARTICIPATION_REQUESTS(login), id, JSON.stringify(data))
       await db.addToHash(PROJECT_PARTICIPATION_REQUESTS(id), login, JSON.stringify(data))
+      await pusher.projectParticipationRequest(project.author, { ...data, name: project.name })
       return true
     } catch (e) {
       console.log(`Error at request participation for project ${id} login ${login}`, e)
@@ -200,7 +217,8 @@ class Projects {
   }
 
   async acceptParticipator(id, login, title) {
-    const owner = (await this.getById(id, null, false, false, false, false)).author
+    const proj = await this.getById(id, null, false, false, false, false)
+    const owner = proj.author
     if (owner === login) {
       console.log(`Cannot assign participation on project's author at project id: ${id}, login: ${login}`)
       logError(`Cannot assign participation on project's author at project id: ${id}, login: ${login}`)
@@ -208,12 +226,20 @@ class Projects {
     }
     const request = await this.getParticipationRequest(id, login)
     await this.revokeParticipation(id, login)
-    await db.addToHash(PROJECT_ACCEPTED_PARTICIPATIONS(id), login, JSON.stringify({
+    const data = {
       login,
       date: Date.now(),
       title: title || '',
       position: request.position
-    }))
+    }
+    await db.addToHash(PROJECT_ACCEPTED_PARTICIPATIONS(id), login, JSON.stringify(data))
+    await pusher.participationAccept(login, {
+      name: proj.name,
+      login,
+      date: Date.now(),
+      title: title || '',
+      position: request.position
+    })
     return true
   }
 
@@ -248,11 +274,13 @@ class Projects {
       return false
     }
     await this.revokeParticipation(id, login)
-    await db.addToHash(PROJECT_REJECTED_PARTICIPATIONS(id), login, JSON.stringify({
+    const data = {
       login,
       date: Date.now(),
       reason: reason || ''
-    }))
+    }
+    await db.addToHash(PROJECT_REJECTED_PARTICIPATIONS(id), login, JSON.stringify(data))
+    await pusher.participationReject(login, data)
     return true
   }
 
