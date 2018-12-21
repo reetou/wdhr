@@ -34,10 +34,11 @@ const start = function() {
       if (req.method === 'OPTIONS') {
         res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override, Cookie, Cookies, Token')
       }
-    } else if (req.headers.origin) {
+    } else if (req.headers.origin || req.headers.host) {
       console.log(`Headers`, req.headers)
       console.log(`Req headers origin is ${req.headers.origin}`)
-      const subdomain = req.headers.origin.match(/(?<=\/\/)(.*)(?=\.kokoro.codes)/gi)
+      let header = req.headers.origin || `http://${req.headers.host}`
+      const subdomain = header.match(/(?<=\/\/)(.*)(?=\.kokoro.codes)/gi)
       if (!subdomain) res.status(404).send({ err: `No such project` })
       console.log(`Got subdomain: ${subdomain[0]}`)
       let project = await db.findInHash(PROJECTS_INDEX_HTML(), subdomain[0])
