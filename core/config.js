@@ -4,6 +4,7 @@ require('dotenv').config();
 
 const REDIS = {keyPrefix: 'wdhr:'}
 const DEV = {}
+const S3 = {}
 const DEBUG = process.env.NODE_ENV !== 'production'
 const AUTH = {}
 const PUSHER = {
@@ -30,9 +31,15 @@ PUSHER.KEY = process.env.PUSHER_KEY
 PUSHER.APP_ID = process.env.APP_ID
 PUSHER.SECRET = process.env.SECRET
 
+S3.URL = process.env.S3_URL
+S3.SECRET = process.env.S3_SECRET
+S3.KEY = process.env.S3_ACCESS_KEY
+S3.BUCKET = process.env.S3_BUCKET
+
 module.exports = {
   DEV,
   REDIS,
+  S3,
   PUSHER,
   AUTH
 }

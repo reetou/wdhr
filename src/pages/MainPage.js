@@ -26,6 +26,7 @@ import CreateArticle from "./CreateArticle"
 import Project from "./Project"
 import ProjectRequests from "./ProjectRequests"
 import ProjectMembers from "./ProjectMembers"
+import ProjectUpload from "./ProjectUpload"
 
 @inject('app', 'auth', 'project', 'article')
 @withRouter
@@ -107,6 +108,7 @@ export default class MainPage extends React.Component {
             <Route exact path={'/projects/:id'} render={() => <CustomRedirecter><Project/></CustomRedirecter>} />
             <Route path={'/projects/:id/requests'} render={() => <CustomRedirecter><ProjectRequests/></CustomRedirecter>} />
             <Route path={'/projects/:id/members'} render={() => <CustomRedirecter><ProjectMembers/></CustomRedirecter>} />
+            <Route path={'/projects/:id/upload'} render={() => <CustomRedirecter><ProjectUpload/></CustomRedirecter>} />
             <Route path="/myarticles/create" render={() => <CustomRedirecter><CreateArticle/></CustomRedirecter>} />
             <Route path="/about" component={About} />
             <DevTools/>

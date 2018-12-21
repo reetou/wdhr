@@ -17,13 +17,14 @@ const REDIRECT_URL = DEBUG ? 'http://localhost:4000' : 'http://kokoro.codes'
 const TEST = process.env.TEST === 'true'
 const app = express()
 let server
+const PROJECTS_INDEX_HTML = () => `projects_index_html`
 //app.use('/*', cors({origin: 'https://city.rocket-cdn.ru'}))
 
 const start = function() {
   const db = require('./db')
   console.log(`AUTH REDIRECTS TO ${REDIRECT_URL}`)
 
-  app.use((req, res, next) => {
+  app.use(async (req, res, next) => {
 
     const allowed = DEBUG ? ['http://localhost:1234', 'http://localhost:80', 'http://kokoro.codes'] : ['http://kokoro.codes']
     if (allowed.indexOf(req.headers.origin) > -1) {
@@ -33,6 +34,14 @@ const start = function() {
       if (req.method === 'OPTIONS') {
         res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override, Cookie, Cookies, Token')
       }
+    } else {
+      const subdomain = req.headers.origin.match(/(?<=\/\/)(.*)(?=\.kokoro.codes)/gi)
+      let project = await db.findInHash(PROJECTS_INDEX_HTML(), subdomain)
+      if (!project) return res.status(404).send({ err: `No such project ${subdomain} found` })
+      project = JSON.parse(project)
+      res.write(project.indexFile.toString())
+      res.end()
+      return
     }
 
     next()

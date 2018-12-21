@@ -344,6 +344,33 @@ export default class ProjectStore {
   }
 
   @action.bound
+  uploadBundle(files, projectId, cb) {
+    console.log('files', files)
+    this.loading = true
+    const d = new FormData()
+    files.forEach(f => d.append('app[]', f))
+    console.log(`form data`, d)
+    Rx.Observable.fromPromise(this.app.axios({
+      method: 'POST',
+      url: `${this.app.API_HOST}/api/projects/upload/${projectId}`,
+      data: d,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    }))
+      .finally(() => this.loading = false)
+      .subscribe(
+        d => console.log(`Response at upload`, d),
+        err => console.log(`Error at upload`, err),
+        () => {
+          if (cb) cb()
+          console.log('DID!')
+          message.success('Загружено успешно!')
+        }
+      )
+  }
+
+  @action.bound
   rate(id, down = false) {
     this.loading = true
     const obs = Rx.Observable.fromPromise(this.app.axios({

@@ -1,11 +1,13 @@
 const db = require('./db')
 const sha1 = require('sha1')
-const { AUTH } = require('./config')
+const { S3 } = require('./config')
 const shortID = require('shortid')
 const pusher = require('./pusher_back')
 const _ = require('lodash')
 const User = require('./user')
 const logError = require('debug')('projects:error')
+const cheerio = require('cheerio')
+const { uploadFiles } = require('./s3')
 
 const USER_PARTICIPATION_REQUESTS = login => `user_${login}_participation_requests`
 const PROJECT_PARTICIPATION_REQUESTS = projectId => `project_${projectId}_participation_requests`
@@ -17,6 +19,8 @@ const PROJECT_ACCEPTED_PARTICIPATIONS = id => `project_${id}_accepted_participat
 const PROJECT_REJECTED_PARTICIPATIONS = id => `project_${id}_rejected_participations`
 const PROJECT_EDITS = id => `project_${id}_edits`
 const PROJECTS_TECHS = () => `projects_techs`
+const PROJECTS_BUNDLES = () => `projects_bundles`
+const PROJECTS_INDEX_HTML = () => `projects_index_html`
 
 class Projects {
 
@@ -57,9 +61,44 @@ class Projects {
     return Boolean(await db.findInHash(PROJECT_ACCEPTED_PARTICIPATIONS(projectId), projectId))
   }
 
+  async uploadBundle(files, projectId) {
+    const project = await this.getById(projectId)
+    if (!project) throw new Error(`No such public project ${projectId}`)
+    const result = await uploadFiles(files, `project_${project.id}_${project.name}`)
+    if (!result) throw new Error(`Upload failed`)
+    let indexFile = null
+    let validated = false
+    let indexHtml = result.find(f => f.index)
+    if (indexHtml) {
+      const file = files.find(f => indexHtml.originalname === f.originalname)
+      if (file && file.buffer) validated = this.validateBundle(file.buffer)
+      indexFile = JSON.stringify(file.buffer)
+    }
+    await db.addToHash(PROJECTS_BUNDLES(), project.name, JSON.stringify({ files: result, validated }))
+    if (indexFile) await db.addToHash(PROJECTS_INDEX_HTML(), project.name, { indexFile })
+    return true
+  }
+
+  validateBundle(fileBuff) {
+    const url = `${S3.URL}/${S3.BUCKET}`
+    const htmlString = fileBuff.toString()
+    const $ = cheerio.load(htmlString, { decodeEntities: false })
+    const links = $('head').find($('head link'))
+    const headLinks = _.forEach(links, l => {
+      const href = $(l).attr('href')
+      if (href.includes('http')) return
+      $(l).attr('href', `${url}${$(l).attr('href')}`)
+      console.log(`attr href`, $(l).attr('href'))
+    })
+
+    const html = $.html()
+    console.log(`FINAL HTML`, html)
+
+    return true
+  }
+
   async get(cursor = 0, login, asc = true) {
     const data = await db.scanHash(PROJECTS(), cursor)
-    console.log('PROJECT SCAN', data)
     const updatedCursor = data[0]
     let projects = data[1].filter(v => typeof JSON.parse(v) === 'object')
     projects = await Promise.all(_.map(projects, async p => {

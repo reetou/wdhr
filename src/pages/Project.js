@@ -3,8 +3,8 @@ import { observable } from 'mobx'
 import { observer, inject } from 'mobx-react'
 import { Link, withRouter } from 'react-router-dom'
 import {
-  Icon, Input, Checkbox, Button, List, Spin, Avatar, Row, Col
-} from 'antd';
+  Icon, Button, Row, Col, Upload
+} from 'antd'
 import RequestParticipationFormDrawer from "../ui/RequestParticipationFormDrawer"
 import { toJS } from "mobx/lib/mobx"
 const _ = require('lodash')
@@ -57,8 +57,9 @@ export default class Project extends React.Component {
         case 3:
           return (
             <React.Fragment>
-              <Button onClick={() => this.props.history.push(`/projects/${proj.id}/requests`)}>Просмотреть заявки</Button>
-              <Button onClick={() => this.props.history.push(`/projects/${proj.id}/members`)}>Участники</Button>
+              <Button style={{ marginBottom: 4 }} block onClick={() => this.props.history.push(`/projects/${proj.id}/requests`)}>Просмотреть заявки</Button>
+              <Button style={{ marginBottom: 4 }} block onClick={() => this.props.history.push(`/projects/${proj.id}/members`)}>Участники</Button>
+              <Button style={{ marginBottom: 4 }} block onClick={() => this.props.history.push(`/projects/${proj.id}/upload`)}>Выложить на кокоро</Button>
             </React.Fragment>
           )
         default: return <div>Ошибка, не могу показать кнопку</div>
