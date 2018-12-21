@@ -72,8 +72,12 @@ class Projects {
     let indexHtml = result.find(f => f.index)
     if (indexHtml) {
       const file = files.find(f => indexHtml.originalname === f.originalname)
-      if (file && file.buffer) validated = this.validateBundle(file.buffer, projectDir)
-      indexFile = JSON.stringify(file.buffer)
+      try {
+        if (file && file.buffer) validated = this.validateBundle(file.buffer, projectDir)
+        indexFile = JSON.stringify(validated)
+      } catch (e) {
+        console.log(`Error while trying to validate bundle`, e)
+      }
     }
     const projectSubdomainName = `${project.id}-${project.name.toLowerCase()}`
     await db.addToHash(PROJECTS_BUNDLES(), projectSubdomainName, JSON.stringify({ files: result, validated }))
@@ -105,7 +109,7 @@ class Projects {
     const html = $.html()
     console.log(`FINAL HTML`, html)
 
-    return true
+    return html
   }
 
   async get(cursor = 0, login, asc = true) {
