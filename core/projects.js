@@ -76,7 +76,7 @@ class Projects {
       indexFile = JSON.stringify(file.buffer)
     }
     await db.addToHash(PROJECTS_BUNDLES(), project.name, JSON.stringify({ files: result, validated }))
-    if (indexFile) await db.addToHash(PROJECTS_INDEX_HTML(), project.name, JSON.stringify({ indexFile }))
+    if (indexFile) await db.addToHash(PROJECTS_INDEX_HTML(), `${project.id}-${project.name.toLowerCase()}`, JSON.stringify({ indexFile }))
     return true
   }
 
