@@ -9,6 +9,7 @@ const sha1 = require('sha1')
 const passport = require('passport');
 const GitHubStrategy = require('passport-github2').Strategy;
 const { asyncFn } = require('./middleware')
+const cheerio = require('cheerio')
 const RedisStore = require('connect-redis')(session);
 const axios = require('axios')
 const DEBUG = process.env.NODE_ENV !== 'production'
@@ -46,10 +47,10 @@ const start = function() {
       if (!project) return res.status(404).send({ err: `No such project ${subdomain} found` })
       project = JSON.parse(project)
       console.log(`Giving index.html, which is:`)
-      console.log(project.indexFile.toString())
-      res.write(project.indexFile.toString())
-      res.end()
-      return
+      const html = Buffer.from(JSON.parse(project.indexFile).data).toString()
+      const $ = cheerio.load(html)
+      const bundle = $.html()
+      res.send(bundle)
     } else {
       console.log(`Headers`, req.headers)
       console.log(`Did not match any: ${req.headers.origin}`)

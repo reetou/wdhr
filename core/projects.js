@@ -74,14 +74,14 @@ class Projects {
       const file = files.find(f => indexHtml.originalname === f.originalname)
       try {
         if (file && file.buffer) validated = this.validateBundle(file.buffer, projectDir)
-        indexFile = JSON.stringify(validated)
+        indexFile = Buffer.from(validated)
       } catch (e) {
         console.log(`Error while trying to validate bundle`, e)
       }
     }
     const projectSubdomainName = `${project.id}-${project.name.toLowerCase()}`
-    await db.addToHash(PROJECTS_BUNDLES(), projectSubdomainName, JSON.stringify({ files: result, validated }))
-    if (indexFile) await db.addToHash(PROJECTS_INDEX_HTML(), projectSubdomainName, JSON.stringify({ indexFile }))
+    await db.addToHash(PROJECTS_BUNDLES(), projectSubdomainName, JSON.stringify({ files: result, validated: Boolean(validated) }))
+    if (indexFile) await db.addToHash(PROJECTS_INDEX_HTML(), projectSubdomainName, JSON.stringify({ indexFile: JSON.stringify(indexFile) }))
     return true
   }
 
