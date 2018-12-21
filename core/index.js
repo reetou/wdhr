@@ -49,6 +49,7 @@ const start = function() {
       res.end()
       return
     } else {
+      console.log(`Headers`, req.headers)
       console.log(`Did not match any: ${req.headers.origin}`)
     }
 
