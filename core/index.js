@@ -44,6 +44,7 @@ const start = function() {
       if (!project) return res.status(404).send({ err: `No such project ${subdomain} found` })
       project = JSON.parse(project)
       console.log(`Giving index.html, which is:`)
+      console.log(project.indexFile.toString())
       res.write(project.indexFile.toString())
       res.end()
       return
