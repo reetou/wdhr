@@ -36,7 +36,8 @@ const start = function() {
       }
     } else {
       const subdomain = req.headers.origin.match(/(?<=\/\/)(.*)(?=\.kokoro.codes)/gi)
-      let project = await db.findInHash(PROJECTS_INDEX_HTML(), subdomain)
+      if (!subdomain) res.status(404).send({ err: `No such project` })
+      let project = await db.findInHash(PROJECTS_INDEX_HTML(), subdomain[0])
       if (!project) return res.status(404).send({ err: `No such project ${subdomain} found` })
       project = JSON.parse(project)
       res.write(project.indexFile.toString())

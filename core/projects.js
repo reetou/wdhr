@@ -64,31 +64,41 @@ class Projects {
   async uploadBundle(files, projectId) {
     const project = await this.getById(projectId)
     if (!project) throw new Error(`No such public project ${projectId}`)
-    const result = await uploadFiles(files, `project_${project.id}_${project.name}`)
+    const projectDir = `project_${project.id}_${project.name}`
+    const result = await uploadFiles(files, projectDir)
     if (!result) throw new Error(`Upload failed`)
     let indexFile = null
     let validated = false
     let indexHtml = result.find(f => f.index)
     if (indexHtml) {
       const file = files.find(f => indexHtml.originalname === f.originalname)
-      if (file && file.buffer) validated = this.validateBundle(file.buffer)
+      if (file && file.buffer) validated = this.validateBundle(file.buffer, projectDir)
       indexFile = JSON.stringify(file.buffer)
     }
     await db.addToHash(PROJECTS_BUNDLES(), project.name, JSON.stringify({ files: result, validated }))
-    if (indexFile) await db.addToHash(PROJECTS_INDEX_HTML(), project.name, { indexFile })
+    if (indexFile) await db.addToHash(PROJECTS_INDEX_HTML(), project.name, JSON.stringify({ indexFile }))
     return true
   }
 
-  validateBundle(fileBuff) {
-    const url = `${S3.URL}/${S3.BUCKET}`
+  validateBundle(fileBuff, projectDir) {
+    const url = `${S3.URL}/${S3.BUCKET}/${projectDir}`
     const htmlString = fileBuff.toString()
     const $ = cheerio.load(htmlString, { decodeEntities: false })
     const links = $('head').find($('head link'))
-    const headLinks = _.forEach(links, l => {
+    const scripts = $('html').find($('html script'))
+    _.forEach(links, l => {
       const href = $(l).attr('href')
       if (href.includes('http')) return
-      $(l).attr('href', `${url}${$(l).attr('href')}`)
+      const current = $(l).attr('href')[0] === '/' ? $(l).attr('href') : `/${$(l).attr('href')}`
+      $(l).attr('href', `${url}${current}`)
       console.log(`attr href`, $(l).attr('href'))
+    })
+    _.forEach(scripts, s => {
+      const src = $(s).attr('src')
+      if (src.includes('http')) return
+      const current = $(s).attr('src')[0] === '/' ? $(s).attr('src') : `/${$(s).attr('src')}`
+      $(s).attr('src', `${url}${current}`)
+      console.log(`attr SRC AT SCRIPT`, $(s).attr('src'))
     })
 
     const html = $.html()
