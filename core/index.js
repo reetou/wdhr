@@ -35,6 +35,7 @@ const start = function() {
         res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override, Cookie, Cookies, Token')
       }
     } else if (req.headers.origin) {
+      console.log(`Headers`, req.headers)
       console.log(`Req headers origin is ${req.headers.origin}`)
       const subdomain = req.headers.origin.match(/(?<=\/\/)(.*)(?=\.kokoro.codes)/gi)
       if (!subdomain) res.status(404).send({ err: `No such project` })
