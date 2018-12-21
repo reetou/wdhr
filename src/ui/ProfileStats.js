@@ -42,7 +42,7 @@ export default class ProfileStats extends React.Component {
             bordered={false}
             bodyStyle={cardBodyStyle}
           >
-            {auth.user.rated.length}
+            {auth.user.rated ? auth.user.rated.length : '0'}
           </Card>
         </Col>
         <Col xs={xs} sm={sm} md={md} lg={lg}>
