@@ -35,14 +35,20 @@ const start = function() {
         res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override, Cookie, Cookies, Token')
       }
     } else if (req.headers.origin) {
+      console.log(`Req headers origin is ${req.headers.origin}`)
       const subdomain = req.headers.origin.match(/(?<=\/\/)(.*)(?=\.kokoro.codes)/gi)
       if (!subdomain) res.status(404).send({ err: `No such project` })
+      console.log(`Got subdomain: ${subdomain[0]}`)
       let project = await db.findInHash(PROJECTS_INDEX_HTML(), subdomain[0])
+      console.log(`Got project for subdomain`, project)
       if (!project) return res.status(404).send({ err: `No such project ${subdomain} found` })
       project = JSON.parse(project)
+      console.log(`Giving index.html`)
       res.write(project.indexFile.toString())
       res.end()
       return
+    } else {
+      console.log(`Did not match any: ${req.headers.origin}`)
     }
 
     next()
