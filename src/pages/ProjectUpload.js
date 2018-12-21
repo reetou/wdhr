@@ -35,7 +35,7 @@ export default class ProjectUpload extends React.Component {
     const proj = project.currentProject
     return (
       <div style={{ padding: 24, background: '#fff', minHeight: 460 }}>
-        <p>Залей свою папку с бандлом сюда, чтобы Чоко собрала все и выложила на <span style={{ fontWeight: 'bold' }}>{proj.name}/kokoro.codes!</span></p>
+        <p>Залей свою папку с бандлом сюда, чтобы Чоко собрала все и выложила на <a href={`http://${proj.id}-${proj.name}.kokoro.codes`} style={{ fontWeight: 'bold' }} target={'_blank'}>{proj.id}-{proj.name}.kokoro.codes!</a></p>
         {
           this.files.length ? <p>Файлов: <span style={{ fontWeight: 'bold' }}>{String(this.files.length)}</span></p> : null
         }
