@@ -75,8 +75,9 @@ class Projects {
       if (file && file.buffer) validated = this.validateBundle(file.buffer, projectDir)
       indexFile = JSON.stringify(file.buffer)
     }
-    await db.addToHash(PROJECTS_BUNDLES(), project.name, JSON.stringify({ files: result, validated }))
-    if (indexFile) await db.addToHash(PROJECTS_INDEX_HTML(), `${project.id}-${project.name.toLowerCase()}`, JSON.stringify({ indexFile }))
+    const projectSubdomainName = `${project.id}-${project.name.toLowerCase()}`
+    await db.addToHash(PROJECTS_BUNDLES(), projectSubdomainName, JSON.stringify({ files: result, validated }))
+    if (indexFile) await db.addToHash(PROJECTS_INDEX_HTML(), projectSubdomainName, JSON.stringify({ indexFile }))
     return true
   }
 
