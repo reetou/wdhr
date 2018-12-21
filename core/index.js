@@ -46,7 +46,6 @@ const start = function() {
       console.log(`Got project for subdomain`, project)
       if (!project) return res.status(404).send({ err: `No such project ${subdomain} found` })
       project = JSON.parse(project)
-      console.log(`INDEX FILE JSON STRING`, project.indexFile)
       const html = Buffer.from(JSON.parse(project.indexFile).data).toString()
       const $ = cheerio.load(html)
       const bundle = $.html()
