@@ -3,8 +3,9 @@ import { observable, toJS, computed } from 'mobx'
 import { observer, inject } from 'mobx-react'
 import { Link, withRouter } from 'react-router-dom'
 import {
-  Icon, Input, Checkbox, Button, List, Spin, Avatar, Row, Col, Modal, Radio, Upload
+  Icon, Button, Row, Col, Upload, Switch, Tooltip
 } from 'antd'
+import ProjectUploadSingleDirectory from "../ui/ProjectUploadSingleDirectory"
 const _ = require('lodash')
 
 @inject('app', 'auth', 'project')
@@ -12,13 +13,7 @@ const _ = require('lodash')
 @observer
 export default class ProjectUpload extends React.Component {
 
-  @computed get
-  hasIndexHtml() {
-    if (!this.files.length) return true
-    return this.files.some(f => f.name === 'index.html')
-  }
-
-  @observable files = []
+  @observable route = 1
 
   componentDidMount() {
     const project = this.props.project
@@ -33,50 +28,31 @@ export default class ProjectUpload extends React.Component {
   render() {
     const { project, app } = this.props
     const proj = project.currentProject
+    const projectDirectoryType = () => {
+      switch (this.route) {
+        case 1: return <ProjectUploadSingleDirectory />
+        case 2: return <div>Multiple</div>
+        default: return <div />
+      }
+    }
+
     return (
       <div style={{ padding: 24, background: '#fff', minHeight: 460 }}>
-        <p>Залей свою папку с бандлом сюда, чтобы Чоко собрала все и выложила на <a href={`http://${proj.id}-${proj.name}.kokoro.codes`} style={{ fontWeight: 'bold' }} target={'_blank'}>{proj.id}-{proj.name}.kokoro.codes!</a></p>
-        {
-          this.files.length ? <p>Файлов: <span style={{ fontWeight: 'bold' }}>{String(this.files.length)}</span></p> : null
-        }
-        {
-          !this.hasIndexHtml ? <p style={{ color: 'red' }}>Ты не залил index.html! Без него ничего работать не будет.</p> : null
-        }
-        {
-          proj.owner ?
-            <Row>
-              <Col xs={12} sm={6}>
-                <Upload
-                  directory
-                  onRemove={file => {
-                    const index = this.files.indexOf(file)
-                    const clone = _.cloneDeep(toJS(this.files))
-                    clone.splice(index, 1)
-                    this.files = clone
-                  }}
-                  beforeUpload={file => {
-                    this.files.push(file)
-                    return false
-                  }}
-                  fileList={this.files}
-                  disabled={project.loading}
-                >
-                  <Button disabled={project.loading}>
-                    <Icon type="upload" /> Выбрать папку
-                  </Button>
-                </Upload>
-              </Col>
-              <Col xs={12} sm={6}>
-                <Button
-                  disabled={!this.files.length || project.loading}
-                  onClick={() => project.uploadBundle(toJS(this.files), proj.id, () => this.files = [])}
-                >
-                  Загрузить
-                </Button>
-              </Col>
-            </Row>
-            : null
-        }
+        <Row gutter={8} type={'flex'}>
+          <Col xs={24} sm={3}><p>Тип проекта: </p></Col>
+          <Col xs={24} sm={6}>
+            <Tooltip
+              placement="rightTop"
+              title={
+                `Выбери одну директорию, если все файлы твоего фронтенда лежат в одной папке рядом с index.html.
+              Если же твой собранный проект содержит вложенность директорий, где картинки лежат в директории img и все такое - выбирай несколько директорий.`
+              }
+            >
+              <Switch checked={this.route === 2} onChange={val => this.route = val ? 2 : 1} checkedChildren="Несколько директорий" unCheckedChildren="Одна директория" />
+            </Tooltip>
+          </Col>
+        </Row>
+        {projectDirectoryType()}
       </div>
     )
   }
