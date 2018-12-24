@@ -16,7 +16,7 @@ router.post('/upload/:id', checkAuth(), upload.array('app[]'), asyncFn(async (re
     const project = await Projects.getById(req.params.id)
     if (!project) return res.status(404).send({ err: `No public project with id ${req.params.id}` })
     if (!req.files) return res.status(400).send({ err: `No files provided` })
-    const result = await Projects.uploadBundle(req.files, req.params.id)
+    const result = await Projects.uploadBundle(req.files, req.params.id, req.body.folder)
     if (!result) return res.status(409).send({ err: `No such public project id ${req.params.id} or could not reach s3 service` })
     res.send({ ok: true })
   } catch (e) {

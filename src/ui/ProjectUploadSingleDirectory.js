@@ -41,6 +41,7 @@ export default class ProjectUploadSingleDirectory extends React.Component {
             }}
             beforeUpload={file => {
               this.files.push(file)
+              console.log(`FILE UPLOAD`, file)
               return false
             }}
             fileList={this.files}

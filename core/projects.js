@@ -61,10 +61,10 @@ class Projects {
     return Boolean(await db.findInHash(PROJECT_ACCEPTED_PARTICIPATIONS(projectId), projectId))
   }
 
-  async uploadBundle(files, projectId) {
+  async uploadBundle(files, projectId, folder = '') {
     const project = await this.getById(projectId)
     if (!project) throw new Error(`No such public project ${projectId}`)
-    const projectDir = `project_${project.id}_${project.name}`
+    const projectDir = `project_${project.id}_${project.name}${folder ? `/${folder}` : ''}`
     const result = await uploadFiles(files, projectDir)
     if (!result) throw new Error(`Upload failed`)
     let indexFile = null
@@ -75,14 +75,33 @@ class Projects {
       try {
         if (file && file.buffer) validated = this.validateBundle(file.buffer, projectDir)
         indexFile = Buffer.from(validated)
+        console.log(`Ended validation, its ok??? ${Boolean(indexFile)}`)
       } catch (e) {
         console.log(`Error while trying to validate bundle`, e)
       }
     }
     const projectSubdomainName = `${project.id}-${project.name.toLowerCase()}`
-    await db.addToHash(PROJECTS_BUNDLES(), projectSubdomainName, JSON.stringify({ files: result, validated: Boolean(validated) }))
-    if (indexFile) await db.addToHash(PROJECTS_INDEX_HTML(), projectSubdomainName, JSON.stringify({ indexFile: JSON.stringify(indexFile) }))
+    console.log(`Saving bundle`)
+    await this.saveBundle(result, projectSubdomainName, folder, indexFile)
     return true
+  }
+
+  async saveBundle(files, name, folder = '', indexFile) {
+    let projectTree = await db.findInHash(PROJECTS_BUNDLES(), name)
+    const now = Date.now()
+    if (!projectTree) {
+      console.log(`No such project bundle ${name}`)
+      projectTree = JSON.stringify({
+        created: now
+      })
+    }
+    projectTree = JSON.parse(projectTree)
+    projectTree.updated = now
+    const rootFolder = `${now}_root_folder`
+    console.log(`PROJECT NAME TO SAVE: ${name} Got project tree, saving to ${folder || rootFolder}`)
+    projectTree[folder || rootFolder] = files
+    await db.addToHash(PROJECTS_BUNDLES(), name, JSON.stringify(projectTree))
+    if (indexFile) await db.addToHash(PROJECTS_INDEX_HTML(), name, JSON.stringify({ indexFile: JSON.stringify(indexFile) }))
   }
 
   validateBundle(fileBuff, projectDir) {

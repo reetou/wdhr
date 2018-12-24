@@ -6,6 +6,7 @@ import {
   Icon, Button, Row, Col, Upload, Switch, Tooltip
 } from 'antd'
 import ProjectUploadSingleDirectory from "../ui/ProjectUploadSingleDirectory"
+import ProjectUploadMultipleDirectory from "../ui/ProjectUploadMultipleDirectory"
 const _ = require('lodash')
 
 @inject('app', 'auth', 'project')
@@ -13,7 +14,7 @@ const _ = require('lodash')
 @observer
 export default class ProjectUpload extends React.Component {
 
-  @observable route = 1
+  @observable route = 2
 
   componentDidMount() {
     const project = this.props.project
@@ -31,7 +32,7 @@ export default class ProjectUpload extends React.Component {
     const projectDirectoryType = () => {
       switch (this.route) {
         case 1: return <ProjectUploadSingleDirectory />
-        case 2: return <div>Multiple</div>
+        case 2: return <ProjectUploadMultipleDirectory/>
         default: return <div />
       }
     }

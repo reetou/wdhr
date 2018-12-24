@@ -344,7 +344,7 @@ export default class ProjectStore {
   }
 
   @action.bound
-  uploadBundle(files, projectId, cb) {
+  uploadBundle(files, projectId, cb, msg = 'Загружено успешно!') {
     console.log('files', files)
     this.loading = true
     const d = new FormData()
@@ -365,7 +365,34 @@ export default class ProjectStore {
         () => {
           if (cb) cb()
           console.log('DID!')
-          message.success('Загружено успешно!')
+          message.success(msg)
+        }
+      )
+  }
+
+  uploadBundlePart(files, projectId, directory, cb) {
+    console.log('files', files)
+    this.loading = true
+    const d = new FormData()
+    files.forEach(f => d.append('app[]', f))
+    d.append('folder', directory)
+    console.log(`form data`, d)
+    Rx.Observable.fromPromise(this.app.axios({
+      method: 'POST',
+      url: `${this.app.API_HOST}/api/projects/upload/${projectId}`,
+      data: d,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    }))
+      .finally(() => this.loading = false)
+      .subscribe(
+        d => console.log(`Response at upload`, d),
+        err => console.log(`Error at upload`, err),
+        () => {
+          if (cb) cb()
+          console.log(`UPLOADED ${directory}!`)
+          message.success(`Папка ${directory} загружена успешно`)
         }
       )
   }

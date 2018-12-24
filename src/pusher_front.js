@@ -4,7 +4,6 @@ import config from '../core/config'
 import { Button, notification } from "antd"
 
 // Enable pusher logging - don't include this in production
-PusherClient.logToConsole = true;
 
 console.log(`Config`, config)
 
