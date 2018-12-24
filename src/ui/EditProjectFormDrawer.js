@@ -10,7 +10,7 @@ const TextArea = Input.TextArea
 @inject('app', 'auth', 'project')
 @withRouter
 @observer
-class RequestParticipationFormDrawer extends React.Component {
+class EditProjectFormDrawer extends React.Component {
 
   validate = () => {
     return new Promise((resolve, reject) => {
@@ -29,7 +29,7 @@ class RequestParticipationFormDrawer extends React.Component {
     try {
       const data = await this.validate()
       console.log('Requesting participation with data', data)
-      await this.props.project.requestParticipation(this.props.project.currentProject.id, data)
+      await this.props.project.edit(this.props.project.currentProject.id, data, () => this.props.project.showEditForm = false)
     } catch (e) {
       console.log('Err', e)
       const validationErr = _.at(e, 'response.data.err')[0]
@@ -52,29 +52,30 @@ class RequestParticipationFormDrawer extends React.Component {
     return (
       <Drawer
         destroyOnClose
-        title={<Button onClick={() => project.showParticipationForm = false }>Закрыть</Button>}
+        title={<Button onClick={() => project.showEditForm = false}>Закрыть</Button>}
         width={360}
-        onClose={() => project.showParticipationForm = false}
-        visible={project.showParticipationForm}
+        onClose={() => project.showEditForm = false}
+        visible={project.showEditForm}
         style={{
           overflow: 'auto',
           height: 'calc(100% - 108px)',
           paddingBottom: '108px',
         }}
       >
-        <h1>Форма на участие боййй</h1>
+        <h1>Редактирование проекта</h1>
         <Form layout="vertical" hideRequiredMark onSubmit={this.submit}>
-          <Form.Item label="Позиция">
-            {getFieldDecorator('position', {
+          <Form.Item label="Краткое описание">
+            {getFieldDecorator('title', {
+              initialValue: project.currentProject.title,
               rules: [
-                { required: true, message: 'Введи свою позицию в проекте, типа фронтендер или кто ты там' },
-                { max: 30, message: 'Ты там поэму строчишь или что? 30 символов, не больше' }
+                { required: true, message: 'Обязательное поле' },
+                { max: 70, message: 'Не больше 70 символов' }
               ],
-            })(<Input placeholder="Кем хочешь быть в проекте" />)}
+            })(<Input placeholder="Не более 30 символов" />)}
           </Form.Item>
           <Form.Item label={'О себе и скиллах'}>
-            {getFieldDecorator('comment', {
-              initialValue: '',
+            {getFieldDecorator('description', {
+              initialValue: project.currentProject.description,
               rules: [
                 { required: true, message: 'Поле пустое' },
                 { max: 2000, message: 'Не больше 2000 символов' },
@@ -83,21 +84,13 @@ class RequestParticipationFormDrawer extends React.Component {
               <TextArea
                 autosize={{ minRows: 6 }}
                 prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)', minHeight: 120 }} />}
-                placeholder="Напиши о себе и своих скиллах, почему решил участвовать в проекте и все такое"
+                placeholder="Подробное описание (до 2k символов)"
               />
             )}
           </Form.Item>
-          <Form.Item label="Позиция">
-            {getFieldDecorator('contacts.telegram', {
-              rules: [
-                { required: true, message: 'Как с тобой связаться-то, подельник?' },
-                { max: 30, message: 'Это точно телега?' }
-              ],
-            })(<Input placeholder="Телеграм без собачки" />)}
-          </Form.Item>
           <Form.Item>
             <Button
-              disabled={project.participationLoading}
+              disabled={project.loading}
               type="primary"
               htmlType="submit"
               className="login-form-button"
@@ -112,4 +105,4 @@ class RequestParticipationFormDrawer extends React.Component {
   }
 }
 
-export default Form.create()(RequestParticipationFormDrawer)
+export default Form.create()(EditProjectFormDrawer)

@@ -7,6 +7,7 @@ import {
 } from 'antd'
 import RequestParticipationFormDrawer from "../ui/RequestParticipationFormDrawer"
 import { toJS } from "mobx/lib/mobx"
+import EditProjectFormDrawer from "../ui/EditProjectFormDrawer"
 const _ = require('lodash')
 
 const getCoeff = (project) => {
@@ -60,6 +61,7 @@ export default class Project extends React.Component {
               <Button style={{ marginBottom: 4 }} block onClick={() => this.props.history.push(`/projects/${proj.id}/requests`)}>Просмотреть заявки</Button>
               <Button style={{ marginBottom: 4 }} block onClick={() => this.props.history.push(`/projects/${proj.id}/members`)}>Участники</Button>
               <Button style={{ marginBottom: 4 }} block onClick={() => this.props.history.push(`/projects/${proj.id}/upload`)}>Выложить на кокоро</Button>
+              <Button style={{ marginBottom: 4 }} disabled={project.showEditForm || project.loading} block onClick={() => project.showEditForm = true}>Редактировать</Button>
             </React.Fragment>
           )
         default: return <div>Ошибка, не могу показать кнопку</div>
@@ -69,6 +71,7 @@ export default class Project extends React.Component {
     return (
       <div style={{ padding: 24, background: '#fff', minHeight: 460 }}>
         <RequestParticipationFormDrawer />
+        <EditProjectFormDrawer/>
         <Row>
           <Col xs={24} sm={16}>
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>

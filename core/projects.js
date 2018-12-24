@@ -376,7 +376,8 @@ class Projects {
       console.log(`Cannot save`)
       return false
     }
-    return result
+    const editedProject = await this.getById(id, login, true)
+    return editedProject
   }
 
   async save(project) {

@@ -80,10 +80,10 @@ class CreateProjectForm extends React.Component {
             initialValue: '',
             rules: [
               { required: true, message: 'Поле пустое' },
-              { max: 1000, message: 'Не больше 1000 символов' },
+              { max: 2000, message: 'Не больше 2000 символов' },
             ],
           })(
-            <TextArea autosize={{ minRows: 6 }} prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)', minHeight: 120 }} />} placeholder="Подробное описание (до тысячи символов)" />
+            <TextArea autosize={{ minRows: 6 }} prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)', minHeight: 120 }} />} placeholder="Подробное описание (до 2k символов)" />
           )}
         </FormItem>
         <FormItem>

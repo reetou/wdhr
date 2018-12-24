@@ -21,6 +21,7 @@ export default class ProjectStore {
   @observable loading = false
   @observable error = ''
   @observable showParticipationForm = false
+  @observable showEditForm = false
   @observable creating = false
   @observable requestLoading = false
   @observable participationLoading = false
@@ -253,7 +254,7 @@ export default class ProjectStore {
   }
 
   @action.bound
-  edit(id, data) {
+  edit(id, data, cb) {
     this.loading = true
     const obs = Rx.Observable.fromPromise(this.app.axios({
       url: `${this.app.API_HOST}/api/user/projects/${id}`,
@@ -264,6 +265,7 @@ export default class ProjectStore {
         v => {
           this.projects = []
           console.log('Edited project', v.data)
+          this.currentProject = v.data
         },
         err => {
           message.error('Не удалось отредактировать проект')
@@ -273,6 +275,7 @@ export default class ProjectStore {
           message.success('Готово', 0.5)
           this.loadAll(false)
           this.loadUserProjects(true)
+          if (cb) cb()
         }
       )
   }
