@@ -16,7 +16,7 @@ const asyncFn = fn => (req, res, next) => {
 }
 
 multerMiddleware = (limitSize, multiple = false) => (req, res, next) => {
-  const fileSize = limitSize || 1000000
+  const fileSize = limitSize || 500000
   if (!multiple) {
     if (!req.file) return res.status(400).send({ err: `No file provided` })
     if (req.file.size > fileSize) return res.status(409).send({ err: `Файл слишком большой` })
