@@ -2,6 +2,8 @@ const { AUTH } = require('../config')
 const logMiddlewareError = require('debug')('middleware:error')
 const _ = require('lodash')
 const User = require('../user')
+const multer = require('multer')
+
 
 const TEST = process.env.TEST === 'true'
 
@@ -11,6 +13,19 @@ const asyncFn = fn => (req, res, next) => {
 		logMiddlewareError(`Error at asyncFn middleware`, e)
 		next(e)
 	})
+}
+
+multerMiddleware = (limitSize, multiple = false) => (req, res, next) => {
+  const fileSize = limitSize || 1000000
+  if (!multiple) {
+    if (!req.file) return res.status(400).send({ err: `No file provided` })
+    if (req.file.size > fileSize) return res.status(409).send({ err: `Файл слишком большой` })
+    return next()
+  }
+  if (!req.files) return res.status(400).send({ err: `No files provided` })
+  const hasLargeFiles = _.some(req.files, file => file.size > fileSize)
+  if (hasLargeFiles) return res.status(409).send({ err: `Содержит слишком большие файлы` })
+  next()
 }
 
 const checkForFields = (fields = {}) => {
@@ -84,5 +99,6 @@ module.exports = {
   uniqueFields,
   checkIfLoginUnique,
   checkForFields,
-  checkAuth
+  checkAuth,
+  multerMiddleware
 }

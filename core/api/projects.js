@@ -8,10 +8,10 @@ const _ = require('lodash')
 const Projects = require('../projects')
 const User = require('../user')
 const multer = require('multer')
-const upload = multer()
-const { asyncFn, checkForFields, checkAuth } = require('../middleware')
+const mltr = multer()
+const { asyncFn, checkForFields, checkAuth, multerMiddleware } = require('../middleware')
 
-router.post('/upload/:id', checkAuth(), upload.array('app[]'), asyncFn(async (req, res) => {
+router.post('/upload/:id', checkAuth(), mltr.array('app[]'), multerMiddleware(3500000, true), asyncFn(async (req, res) => {
   try {
     const project = await Projects.getById(req.params.id)
     if (!project) return res.status(404).send({ err: `No public project with id ${req.params.id}` })
@@ -23,6 +23,18 @@ router.post('/upload/:id', checkAuth(), upload.array('app[]'), asyncFn(async (re
     console.log(`Error at upload`, e)
     res.status(500).send({ ok: false })
   }
+}))
+
+router.post('/avatar/:id', checkAuth(), mltr.single('avatar'), multerMiddleware(), asyncFn(async (req, res) => {
+  const id = req.params.id
+  if (!id || !_.isInteger(Number(id))) return res.status(400).send({ err: `Invalid id` })
+  if (!req.file) return res.status(400).send({ err: `No file provided` })
+  const project = await Projects.getById(id, req.user.username, true)
+  if (!project) return res.status(404).send({ err: `No such project found: ${id}` })
+  console.log(`Req file at avatar`, req.file)
+  const result = await Projects.updateAvatar(id, req.file, project)
+  if (!result) return res.status(409).send({ err: `Cannot upload avatar` })
+  res.send(result)
 }))
 
 router.get('/', checkAuth(), asyncFn(async (req, res) => {

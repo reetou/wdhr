@@ -2,8 +2,8 @@ import React from 'react'
 import { inject, observer } from 'mobx-react'
 import { withRouter } from 'react-router-dom'
 import {
-  Drawer, Form, Button, Col, Row, Input, Select, DatePicker, Icon,
-} from 'antd';
+  Drawer, Form, Button, Col, Row, Input, Select, DatePicker, Icon, Upload, Tooltip
+} from 'antd'
 const _ = require('lodash')
 const TextArea = Input.TextArea
 
@@ -49,6 +49,12 @@ class EditProjectFormDrawer extends React.Component {
   render() {
     const { project, app, auth } = this.props
     const { getFieldDecorator } = this.props.form;
+    const uploadButton = (
+      <div>
+        <Icon type={project.loadingAvatar ? 'loading' : 'plus'} />
+        <div className="ant-upload-text">Загрузить</div>
+      </div>
+    );
     return (
       <Drawer
         destroyOnClose
@@ -63,6 +69,42 @@ class EditProjectFormDrawer extends React.Component {
         }}
       >
         <h1>Редактирование проекта</h1>
+
+        <Tooltip
+          placement="topLeft"
+          title={'Разрешенные форматы: .gif, .jpeg, .jpg, .png, файлы больше 1мб не гружу'}
+        >
+          <div style={{ width: 170 }}>
+            <Upload
+              name="avatar"
+              listType="picture-card"
+              className="avatar-uploader"
+              style={{
+                width: 150,
+                height: 150
+              }}
+              showUploadList={false}
+              beforeUpload={file => {
+                console.log(`File`, file)
+                project.uploadAvatar(file, project.currentProject.id)
+                return false
+              }}
+              onChange={info => {
+                if (info.file.status === 'uploading') {
+                  project.loadingAvatar = true
+                }
+                if (info.file.status === 'done') project.loadingAvatar = false
+              }}
+            >
+              {
+                project.currentProject && project.currentProject.avatar_url ?
+                  <img src={project.currentProject.avatar_url} alt="avatar" />
+                  : uploadButton
+              }
+            </Upload>
+          </div>
+        </Tooltip>
+
         <Form layout="vertical" hideRequiredMark onSubmit={this.submit}>
           <Form.Item label="Краткое описание">
             {getFieldDecorator('title', {
@@ -90,7 +132,7 @@ class EditProjectFormDrawer extends React.Component {
           </Form.Item>
           <Form.Item>
             <Button
-              disabled={project.loading}
+              disabled={project.loading || project.loadingAvatar}
               type="primary"
               htmlType="submit"
               className="login-form-button"

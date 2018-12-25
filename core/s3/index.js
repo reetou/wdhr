@@ -15,8 +15,8 @@ let s3 = new OSAPI_S3.Connection({
   bucket: config.S3.BUCKET,
 })
 
-async function makePreview(imageData) {
-  return await sharp(imageData).resize(200).withMetadata().toBuffer()
+async function makePreview(imageData, size) {
+  return await sharp(imageData).resize(size || 200).withMetadata().toBuffer()
 }
 
 async function uploadFile(buff, name, mime) {
@@ -60,7 +60,7 @@ function remove(nameObject) {
   return new Promise((resolve, reject) => {
     s3.deleteObject(nameObject, (err, data) => {
       if (err) {
-        console.log(`Error at upload??`, err)
+        console.log(`Error at remove file ${nameObject}??`, err)
         reject(err)
       }
       resolve()
@@ -125,6 +125,9 @@ async function uploadBase64Image(str) {
 }
 
 module.exports = {
+  upload,
   uploadFiles,
+  makePreview,
+  remove,
   uploadBase64Image,
 }

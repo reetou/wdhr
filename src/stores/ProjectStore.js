@@ -29,6 +29,7 @@ export default class ProjectStore {
   @observable showDenyReasonForm = false
   @observable denyReason = 0
   @observable denyPerson = ''
+  @observable loadingAvatar = false
 
   @computed get
   parsedDenyReason() {
@@ -347,12 +348,42 @@ export default class ProjectStore {
   }
 
   @action.bound
+  uploadAvatar(file, projectId, cb) {
+    this.loadingAvatar = true
+    const fallback = this.currentProject.avatar_url
+    this.currentProject.avatar_url = ''
+    const d = new FormData()
+    d.append('avatar', file)
+    Rx.Observable.fromPromise(this.app.axios({
+      method: 'POST',
+      url: `${this.app.API_HOST}/api/projects/avatar/${projectId}`,
+      data: d,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    }))
+      .finally(() => this.loadingAvatar = false)
+      .subscribe(
+        res => {
+          this.currentProject.avatar_url = res.data.avatar_url
+        },
+        err => {
+          this.currentProject.avatar_url = fallback
+          console.log(`Error at upload`, err)
+        },
+        () => {
+          if (cb) cb()
+          message.success('OK')
+        }
+      )
+  }
+
+  @action.bound
   uploadBundle(files, projectId, cb, msg = 'Загружено успешно!') {
     console.log('files', files)
     this.loading = true
     const d = new FormData()
     files.forEach(f => d.append('app[]', f))
-    console.log(`form data`, d)
     Rx.Observable.fromPromise(this.app.axios({
       method: 'POST',
       url: `${this.app.API_HOST}/api/projects/upload/${projectId}`,
@@ -364,7 +395,10 @@ export default class ProjectStore {
       .finally(() => this.loading = false)
       .subscribe(
         d => console.log(`Response at upload`, d),
-        err => console.log(`Error at upload`, err),
+        err => {
+          console.log(`Error at upload`, err)
+          message.error(`Ошибка загрузки корневой папки`)
+        },
         () => {
           if (cb) cb()
           console.log('DID!')
@@ -391,7 +425,10 @@ export default class ProjectStore {
       .finally(() => this.loading = false)
       .subscribe(
         d => console.log(`Response at upload`, d),
-        err => console.log(`Error at upload`, err),
+        err => {
+          console.log(`Error at upload`, err)
+          message.error(`Ошибка загрузки папки ${directory}`)
+        },
         () => {
           if (cb) cb()
           console.log(`UPLOADED ${directory}!`)

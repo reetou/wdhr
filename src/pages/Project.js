@@ -8,6 +8,7 @@ import {
 import RequestParticipationFormDrawer from "../ui/RequestParticipationFormDrawer"
 import { toJS } from "mobx/lib/mobx"
 import EditProjectFormDrawer from "../ui/EditProjectFormDrawer"
+import UIAvatar from "../ui/Avatar"
 const _ = require('lodash')
 
 const getCoeff = (project) => {
@@ -86,6 +87,12 @@ export default class Project extends React.Component {
               <h1 style={{ marginBottom: 0, marginLeft: 10 }}>{_.capitalize(proj.name)} purojecto</h1>
             </div>
             <p>by {proj.author}</p>
+            <UIAvatar
+              url={proj.avatar_url || ''}
+              style={{
+                justifyContent: 'flex-start'
+              }}
+            />
             <p>Стек и технологии: {project.parsedTechs}</p>
             <p>Рейтинг: {proj.rating}</p>
             {

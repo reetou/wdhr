@@ -7,7 +7,8 @@ const _ = require('lodash')
 const User = require('./user')
 const logError = require('debug')('projects:error')
 const cheerio = require('cheerio')
-const { uploadFiles } = require('./s3')
+const sharp = require('sharp')
+const { uploadFiles, upload, makePreview, remove } = require('./s3')
 
 const USER_PARTICIPATION_REQUESTS = login => `user_${login}_participation_requests`
 const PROJECT_PARTICIPATION_REQUESTS = projectId => `project_${projectId}_participation_requests`
@@ -357,6 +358,38 @@ class Projects {
     return true
   }
 
+  async updateAvatar(id, file, project) {
+    const projectName = project.name
+    const s3_bucket_url = `${S3.URL}/${S3.BUCKET}`
+    let ext = file.mimetype.slice(-4)
+    console.log(`ext? ${ext}, mime? ${file.mimetype}`)
+    if (ext[0] === '.' || ext[0] === '/') ext = ext.slice(-3)
+    const accepted = ['gif', 'jpeg', 'jpg', 'png']
+    if (!accepted.includes(ext)) {
+      console.log(`Not includes such extension: ${ext}`)
+      return false
+    }
+    if (project.avatar_url) await remove(project.avatar_url)
+    const name = `projects_avatars/${id}_${projectName}_${Date.now()}.${ext}`
+    const avatar_url = `${s3_bucket_url}/${name}`
+    try {
+      const buffer = await makePreview(file.buffer, 150)
+      await upload({
+        name,
+        contentType: file.mimetype,
+        acl: 'public-read'
+      }, buffer)
+      project.avatar_url = avatar_url
+      await this.save(project)
+      return {
+        avatar_url
+      }
+    } catch (e) {
+      console.log(`Error at update avatar`, e)
+      return false
+    }
+  }
+
   async edit(id, login, data) {
     let project = await this.getById(id, login, true, true, false, false)
     const oldEdit = JSON.stringify(project)
@@ -387,6 +420,9 @@ class Projects {
     delete project.owner
     delete project.is_participator
     delete project.is_requested_participation
+    delete project.participation_requests
+    delete project.members
+    if (!project.avatar_url) project.avatar_url = ''
     await db.addToHash(USER_PROJECTS(project.author), project.id, JSON.stringify(project))
     if (project.is_public) {
       await db.addToHash(PROJECTS(), project.id, JSON.stringify(project))
@@ -421,6 +457,7 @@ class Projects {
       title,
       estimates,
       techs,
+      avatar_url: '',
       created: Date.now(),
       author,
       budget,
