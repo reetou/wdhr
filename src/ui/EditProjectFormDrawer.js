@@ -72,7 +72,7 @@ class EditProjectFormDrawer extends React.Component {
 
         <Tooltip
           placement="topLeft"
-          title={'Разрешенные форматы: .gif, .jpeg, .jpg, .png, файлы больше 1мб не гружу'}
+          title={'Разрешенные форматы: .gif, .jpeg, .jpg, .png, файлы больше 512кб не гружу'}
         >
           <div style={{ width: 170 }}>
             <Upload
