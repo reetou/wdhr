@@ -8,7 +8,6 @@ import './main.css'
 
 const stores = createStores()
 
-window['STORES'] = stores
 
 console.log('Stores APP', stores.app)
 ReactDOM.render(
