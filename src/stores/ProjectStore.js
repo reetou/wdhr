@@ -123,7 +123,9 @@ export default class ProjectStore {
         v => console.log(`CREATED PROJECT WITH ${v.data.id}`, v),
         err => {
           console.error(`Error at create project`, err)
-          message.error('Ошибка при создании проекта', 3)
+          const defaultErrMessage = `Ошибка создания проекта`
+          const errMessage = _.has(err, 'response.data.err') ? `${defaultErrMessage}: ${err.response.data.err}` : defaultErrMessage
+          message.error(errMessage)
         },
         () => message.success(`Проект ${data.name} создан успешно.`, 2.5))
   }
@@ -379,6 +381,30 @@ export default class ProjectStore {
   }
 
   @action.bound
+  clearProjectStorage(projectId, cb) {
+    this.loading = true
+    Rx.Observable.fromPromise(this.app.axios({
+      method: 'DELETE',
+      url: `${this.app.API_HOST}/api/projects/static/${projectId}`,
+    }))
+      .finally(() => this.loading = false)
+      .subscribe(
+        d => console.log(`Response at upload`, d),
+        err => {
+          console.log(`Error at upload`, err, err.response)
+          const defaultErrMessage = `Ошибка очистки хранилища проекта`
+          const errMessage = _.has(err, 'response.data.err') ? `${defaultErrMessage}: ${err.response.data.err}` : defaultErrMessage
+          message.error(errMessage)
+        },
+        () => {
+          if (cb) cb()
+          console.log('DID!')
+          message.success('Очищено успешно')
+        }
+      )
+  }
+
+  @action.bound
   uploadBundle(files, projectId, cb, msg = 'Загружено успешно!') {
     console.log('files', files)
     this.loading = true
@@ -386,7 +412,7 @@ export default class ProjectStore {
     files.forEach(f => d.append('app[]', f))
     Rx.Observable.fromPromise(this.app.axios({
       method: 'POST',
-      url: `${this.app.API_HOST}/api/projects/upload/${projectId}`,
+      url: `${this.app.API_HOST}/api/projects/static/${projectId}`,
       data: d,
       headers: {
         'Content-Type': 'multipart/form-data'
@@ -396,8 +422,10 @@ export default class ProjectStore {
       .subscribe(
         d => console.log(`Response at upload`, d),
         err => {
-          console.log(`Error at upload`, err)
-          message.error(`Ошибка загрузки корневой папки`)
+          console.log(`Error at upload`, err, err.response)
+          const defaultErrMessage = `Ошибка загрузки корневой папки`
+          const errMessage = _.has(err, 'response.data.err') ? `${defaultErrMessage}: ${err.response.data.err}` : defaultErrMessage
+          message.error(errMessage)
         },
         () => {
           if (cb) cb()
@@ -416,7 +444,7 @@ export default class ProjectStore {
     console.log(`form data`, d)
     Rx.Observable.fromPromise(this.app.axios({
       method: 'POST',
-      url: `${this.app.API_HOST}/api/projects/upload/${projectId}`,
+      url: `${this.app.API_HOST}/api/projects/static/${projectId}`,
       data: d,
       headers: {
         'Content-Type': 'multipart/form-data'
@@ -427,7 +455,10 @@ export default class ProjectStore {
         d => console.log(`Response at upload`, d),
         err => {
           console.log(`Error at upload`, err)
-          message.error(`Ошибка загрузки папки ${directory}`)
+
+          const defaultErrMessage = `Ошибка загрузки папки ${directory}`
+          const errMessage = _.has(err, 'response.data.err') ? `${defaultErrMessage}: ${err.response.data.err}` : defaultErrMessage
+          message.error(errMessage)
         },
         () => {
           if (cb) cb()

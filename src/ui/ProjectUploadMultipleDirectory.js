@@ -27,12 +27,13 @@ const NodeControls = observer(props => {
             <Upload
               multiple
               beforeUpload={props.beforeUpload}
-              disabled={props.loading}
               type={'dashed'}
               showUploadList={false}
               style={{ cursor: 'pointer', color: '#40a9ff' }}
             >
-              <Button>
+              <Button
+                disabled={props.loading || props.uploaded}
+              >
                 <Icon type={'file'} /> Файлы
               </Button>
             </Upload>
@@ -43,8 +44,20 @@ const NodeControls = observer(props => {
       }
       {
         props.showDelete ?
-          <Button onClick={props.onRemove} style={{ marginLeft: 8 }}>
+          <Button onClick={props.onRemove} disabled={props.loading || props.uploaded} style={{ marginLeft: 8 }}>
             <Icon type={'delete'} /> Удалить
+          </Button> : null
+      }
+      {
+        props.onReset ?
+          <Button onClick={props.onReset} disabled={props.loading} style={{ marginLeft: 8 }}>
+            <Icon type={'undo'} /> Очистить
+          </Button> : null
+      }
+      {
+        props.onClear ?
+          <Button type={'danger'} onClick={props.onClear} disabled={props.loading} style={{ marginLeft: 8 }}>
+            <Icon type={'close'} /> Форматировать хранилище
           </Button> : null
       }
     </div>
@@ -198,6 +211,17 @@ export default class ProjectUploadMultipleDirectory extends React.Component {
     this.selectedNode = ''
   }
 
+  reset = (withStructure = true) => {
+    this.allUploaded = false
+    this.uploadedRootDirectoryFiles = false
+    this.selectedNode = ''
+    this.uploadedDirectories = []
+    if (withStructure) {
+      this.rootDirectoryFiles = []
+      this.fileStructure = {}
+    }
+  }
+
   render() {
     const { project, app } = this.props
     const proj = project.currentProject
@@ -225,7 +249,10 @@ export default class ProjectUploadMultipleDirectory extends React.Component {
                 showDelete={this.selectedNode !== MAIN_FOLDER}
                 beforeUpload={this.onAddFile}
                 loading={project.loading}
+                uploaded={this.allUploaded}
                 onRemove={this.onRemove}
+                onClear={() => project.clearProjectStorage(proj.id, () => this.reset(false))}
+                onReset={this.reset}
               />
             </Col> : null
         }

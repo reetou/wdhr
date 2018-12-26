@@ -8,7 +8,7 @@ const User = require('./user')
 const logError = require('debug')('projects:error')
 const cheerio = require('cheerio')
 const sharp = require('sharp')
-const { uploadFiles, upload, makePreview, remove } = require('./s3')
+const { uploadFiles, upload, makePreview, remove, removeFilesByPrefix, listFiles } = require('./s3')
 
 const USER_PARTICIPATION_REQUESTS = login => `user_${login}_participation_requests`
 const PROJECT_PARTICIPATION_REQUESTS = projectId => `project_${projectId}_participation_requests`
@@ -46,6 +46,17 @@ class Projects {
       budget: 'number'
     }
     this.ALLOWED_EDIT_PROPS = ['is_public', 'name', 'description', 'title', 'budget']
+    const mb = 1000000
+    this.PROJECT_DEFAULT_SIZE = {
+      USER: 15 * mb,
+      SILVER: 50 * mb,
+      GOLD: 100 * mb
+    }
+    this.PROJECT_COUNT_LIMIT = {
+      USER: 5,
+      SILVER: 10,
+      GOLD: 20
+    }
   }
 
   async getTechs() {
@@ -62,10 +73,77 @@ class Projects {
     return Boolean(await db.findInHash(PROJECT_ACCEPTED_PARTICIPATIONS(projectId), projectId))
   }
 
-  async uploadBundle(files, projectId, folder = '') {
-    const project = await this.getById(projectId)
+  async getStaticFolderSize(prefix) {
+    const files = await listFiles(prefix)
+    let size = 0
+    files.Contents.forEach(f => size += f.Size)
+    console.log(`Size for prefix: ${size}`)
+    return Number(size) || 0
+  }
+
+  async getProjectMaximumSize(login) {
+    let size = this.PROJECT_DEFAULT_SIZE.USER
+    const silver = await db.findInHash('silver_users', login)
+    const gold = await db.findInHash(`gold_users`, login)
+    if (silver) size = this.PROJECT_DEFAULT_SIZE.SILVER
+    if (gold) size = this.PROJECT_DEFAULT_SIZE.GOLD
+    return size
+  }
+
+  async isProjectSizeAboveLimit(project, login, filesSummarySize) {
+    const prefix = `project_${project.id}_${project.name}`
+    const projectSize = await this.getStaticFolderSize(prefix)
+    const maximumSize = await this.getProjectMaximumSize(login)
+    return Boolean(maximumSize < projectSize + filesSummarySize)
+  }
+
+  async removeProjectStaticFiles(project) {
+    if (!project) return false
+    const prefix = `project_${project.id}_${project.name}`
+    return await removeFilesByPrefix(prefix)
+  }
+
+  async updateAvatar(id, file, project) {
+    const projectName = project.name
+    const s3_bucket_url = `${S3.URL}/${S3.BUCKET}`
+    let ext = file.mimetype.slice(-4)
+    console.log(`ext? ${ext}, mime? ${file.mimetype}`)
+    if (ext[0] === '.' || ext[0] === '/') ext = ext.slice(-3)
+    const accepted = ['gif', 'jpeg', 'jpg', 'png']
+    if (!accepted.includes(ext)) {
+      console.log(`Not includes such extension: ${ext}`)
+      return false
+    }
+    if (project.avatar_url) await remove(project.avatar_url)
+    const name = `projects_avatars/${id}_${projectName}_${Date.now()}.${ext}`
+    const avatar_url = `${s3_bucket_url}/${name}`
+    try {
+      const buffer = await makePreview(file.buffer, 150)
+      await upload({
+        name,
+        contentType: file.mimetype,
+        acl: 'public-read'
+      }, buffer)
+      project.avatar_url = avatar_url
+      await this.save(project)
+      return {
+        avatar_url
+      }
+    } catch (e) {
+      console.log(`Error at update avatar`, e)
+      return false
+    }
+  }
+
+  async uploadBundle(files, projectId, login, folder = '') {
+    const project = await this.getById(projectId, login, true, false)
     if (!project) throw new Error(`No such public project ${projectId}`)
-    const projectDir = `project_${project.id}_${project.name}${folder ? `/${folder}` : ''}`
+    const prefix = `project_${project.id}_${project.name}`
+    let summaryFilesSize = 0
+    files.forEach(f => summaryFilesSize += f.size)
+    const isAboveLimit = await this.isProjectSizeAboveLimit(project, login, summaryFilesSize)
+    if (isAboveLimit) throw new Error(`Превышен лимит размера проекта`)
+    const projectDir = `${prefix}${folder ? `/${folder}` : ''}`
     const result = await uploadFiles(files, projectDir)
     if (!result) throw new Error(`Upload failed`)
     let indexFile = null
@@ -358,38 +436,6 @@ class Projects {
     return true
   }
 
-  async updateAvatar(id, file, project) {
-    const projectName = project.name
-    const s3_bucket_url = `${S3.URL}/${S3.BUCKET}`
-    let ext = file.mimetype.slice(-4)
-    console.log(`ext? ${ext}, mime? ${file.mimetype}`)
-    if (ext[0] === '.' || ext[0] === '/') ext = ext.slice(-3)
-    const accepted = ['gif', 'jpeg', 'jpg', 'png']
-    if (!accepted.includes(ext)) {
-      console.log(`Not includes such extension: ${ext}`)
-      return false
-    }
-    if (project.avatar_url) await remove(project.avatar_url)
-    const name = `projects_avatars/${id}_${projectName}_${Date.now()}.${ext}`
-    const avatar_url = `${s3_bucket_url}/${name}`
-    try {
-      const buffer = await makePreview(file.buffer, 150)
-      await upload({
-        name,
-        contentType: file.mimetype,
-        acl: 'public-read'
-      }, buffer)
-      project.avatar_url = avatar_url
-      await this.save(project)
-      return {
-        avatar_url
-      }
-    } catch (e) {
-      console.log(`Error at update avatar`, e)
-      return false
-    }
-  }
-
   async edit(id, login, data) {
     let project = await this.getById(id, login, true, true, false, false)
     const oldEdit = JSON.stringify(project)
@@ -447,8 +493,25 @@ class Projects {
     return true
   }
 
+  async getProjectCountLimit(login) {
+    let count = this.PROJECT_COUNT_LIMIT.USER
+    const silver = await db.findInHash('silver_users', login)
+    const gold = await db.findInHash(`gold_users`, login)
+    if (silver) count = this.PROJECT_COUNT_LIMIT.SILVER
+    if (gold) count = this.PROJECT_COUNT_LIMIT.GOLD
+    return count
+  }
+
+  async isAboveProjectCountLimit(login) {
+    if (!login) return true
+    const count = await db.getHashLen(USER_PROJECTS(login))
+    const countLimit = await this.getProjectCountLimit(login)
+    return count >= countLimit
+  }
+
   async create(name, description, title, estimates, techs, author, budget, is_public, repo) {
     const count = await db.getListLen(PROJECTS(), 'create')
+    if (await this.isAboveProjectCountLimit(author)) throw new Error('Достигнут лимит проектов')
     const id = Number(count) + 1
     const data = {
       id,

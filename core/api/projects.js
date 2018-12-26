@@ -9,19 +9,40 @@ const Projects = require('../projects')
 const User = require('../user')
 const multer = require('multer')
 const mltr = multer()
+const { listFiles, removeFilesByPrefix } = require('../s3')
 const { asyncFn, checkForFields, checkAuth, multerMiddleware } = require('../middleware')
 
-router.post('/upload/:id', checkAuth(), mltr.array('app[]'), multerMiddleware(3500000, true), asyncFn(async (req, res) => {
+
+router.get('/static/:id', checkAuth(), asyncFn(async (req, res) => {
+  const project = await Projects.getById(req.params.id, req.user.username, true, false)
+  if (!project) return res.status(404).send({ err: `No such project ${req.params.id}` })
+  res.send({
+    maximum_size: await Projects.getProjectMaximumSize(req.user.username),
+    project_id: req.params.id,
+    project_size: await Projects.getStaticFolderSize(`project_${req.params.id}_${project.name}`)
+  })
+}))
+
+router.delete('/static/:id', checkAuth(), asyncFn(async (req, res) => {
+  const id = req.params.id
+  const project = await Projects.getById(id, req.user.username, true, false)
+  if (!project) res.status(404).send({ err: `No such public project` })
+  const result = await Projects.removeProjectStaticFiles(project)
+  if (!result) return res.status(409).send({ err: `Cannot remove all files` })
+  res.send({ sent: true, files: result })
+}))
+
+router.post('/static/:id', checkAuth(), mltr.array('app[]'), multerMiddleware(3500000, true), asyncFn(async (req, res) => {
   try {
     const project = await Projects.getById(req.params.id)
     if (!project) return res.status(404).send({ err: `No public project with id ${req.params.id}` })
     if (!req.files) return res.status(400).send({ err: `No files provided` })
-    const result = await Projects.uploadBundle(req.files, req.params.id, req.body.folder)
+    const result = await Projects.uploadBundle(req.files, req.params.id, req.user.username, req.body.folder)
     if (!result) return res.status(409).send({ err: `No such public project id ${req.params.id} or could not reach s3 service` })
     res.send({ ok: true })
   } catch (e) {
     console.log(`Error at upload`, e)
-    res.status(500).send({ ok: false })
+    res.status(409).send({ ok: false, err: e.message })
   }
 }))
 
@@ -53,9 +74,15 @@ router.post('/', checkAuth(), checkForFields(Projects.CREATE_PROPS), asyncFn(asy
   const data = req.body
   const public_repos = await User.getPublicRepos(req.user.username)
   if (data.repo !== 0 && !public_repos.map(r => Number(r.id)).includes(data.repo)) return res.status(400).send({ err: `User ${req.user.username} has no public repo ${data.repo}` })
-  const result = await Projects.create(data.name, data.description, data.title, data.estimates, data.techs, req.user.username, data.budget, data.is_public, data.repo)
-  if (!result) res.status(500).send({ err: `Не могу создать проект` })
-  res.send(result)
+  try {
+    const result = await Projects.create(data.name, data.description, data.title, data.estimates, data.techs, req.user.username, data.budget, data.is_public, data.repo)
+    if (!result) return res.status(500).send({ err: `Неизвестная ошибка` })
+    res.send(result)
+  } catch (e) {
+    if (e.message === 'Достигнут лимит проектов') {
+      return res.status(403).send({ err: e.message })
+    }
+  }
 }))
 
 router.get('/mocks/request/:id', asyncFn(async (req, res) => {

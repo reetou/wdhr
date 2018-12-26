@@ -32,7 +32,7 @@ export default class ProjectUploadSingleDirectory extends React.Component {
       <Row>
         <Col xs={12} sm={6}>
           <Upload
-            directory
+            multiple
             onRemove={file => {
               const index = this.files.indexOf(file)
               const clone = _.cloneDeep(toJS(this.files))
@@ -48,16 +48,33 @@ export default class ProjectUploadSingleDirectory extends React.Component {
             disabled={project.loading}
           >
             <Button disabled={project.loading}>
-              <Icon type="upload" /> Выбрать папку
+              <Icon type="upload" /> Выбрать файлы
             </Button>
           </Upload>
         </Col>
-        <Col xs={12} sm={6}>
+        <Col xs={24} sm={4}>
           <Button
             disabled={!this.files.length || project.loading}
             onClick={() => project.uploadBundle(toJS(this.files), proj.id, () => this.files = [])}
           >
             Загрузить
+          </Button>
+        </Col>
+        <Col xs={24} sm={4}>
+          <Button
+            disabled={!this.files.length || project.loading}
+            onClick={() => this.files = []}
+          >
+            Очистить
+          </Button>
+        </Col>
+        <Col xs={24} sm={8}>
+          <Button
+            type={'danger'}
+            disabled={project.loading}
+            onClick={() => project.clearProjectStorage(proj.id)}
+          >
+            Форматировать хранилище
           </Button>
         </Col>
       </Row>

@@ -24,7 +24,7 @@ multerMiddleware = (limitSize, multiple = false) => (req, res, next) => {
   }
   if (!req.files) return res.status(400).send({ err: `No files provided` })
   const hasLargeFiles = _.some(req.files, file => file.size > fileSize)
-  if (hasLargeFiles) return res.status(409).send({ err: `Содержит слишком большие файлы` })
+  if (hasLargeFiles) return res.status(409).send({ err: `Содержит слишком большие файлы (больше ${fileSize} байт)` })
   next()
 }
 
