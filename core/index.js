@@ -11,6 +11,7 @@ const { asyncFn } = require('./middleware')
 const cheerio = require('cheerio')
 const RedisStore = require('connect-redis')(session);
 const axios = require('axios')
+const _ = require('lodash')
 const DEBUG = process.env.NODE_ENV !== 'production'
 const REDIRECT_URL = DEBUG ? 'http://localhost:4000' : 'http://kokoro.codes'
 
@@ -18,6 +19,7 @@ const TEST = process.env.TEST === 'true'
 const app = express()
 let server
 const PROJECTS_INDEX_HTML = () => `projects_index_html`
+const PROJECTS_INDEX_VISITS = projectId => `projects_index_visits_${projectId}`
 //app.use('/*', cors({origin: 'https://city.rocket-cdn.ru'}))
 
 const start = function() {
@@ -35,23 +37,23 @@ const start = function() {
         res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override, Cookie, Cookies, Token')
       }
     } else if (req.headers.origin || req.headers.host) {
-      console.log(`Headers`, req.headers)
-      console.log(`Req headers origin is ${req.headers.origin}`)
       let header = req.headers.origin || `http://${req.headers.host}`
       const subdomain = header.match(/(?<=\/\/)(.*)(?=\.kokoro.codes)/gi)
       if (!subdomain) return next()
-      console.log(`Got subdomain: ${subdomain[0]}`)
       let project = await db.findInHash(PROJECTS_INDEX_HTML(), subdomain[0])
-      console.log(`Got project for subdomain`, project)
       if (!project) return res.status(404).send({ err: `No such project ${subdomain} found` })
       project = JSON.parse(project)
+      if (_.has(req, 'user.username')) {
+        console.log(`WRITING NEW VISIT TO PROJECT ${subdomain[0][0]} visitor ${req.user.username}`)
+        await db.addToHash(PROJECTS_INDEX_VISITS(subdomain[0][0]), req.user.username, JSON.stringify({
+          visitor: req.user.username,
+          date: Date.now()
+        }))
+      }
       const html = Buffer.from(JSON.parse(project.indexFile).data).toString()
       const $ = cheerio.load(html)
       const bundle = $.html()
       res.send(bundle)
-    } else {
-      console.log(`Headers`, req.headers)
-      console.log(`Did not match any: ${req.headers.origin}`)
     }
 
     next()
