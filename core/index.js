@@ -50,7 +50,7 @@ const start = function() {
     saveUninitialized: false,
   }
   if (!DEBUG) {
-    sessionOptions.domain = 'kokoro.codes'
+    sessionOptions.domain = '.kokoro.codes'
   }
   app.use(session(sessionOptions))
 
@@ -86,7 +86,7 @@ const start = function() {
 
   app.use(passport.initialize());
   const passportSessOpts = {
-    domain: 'kokoro.codes'
+    domain: '.kokoro.codes'
   }
   app.use(passport.session(passportSessOpts));
   app.use(async (req, res, next) => {
@@ -97,7 +97,7 @@ const start = function() {
       if (req.method === 'OPTIONS') {
         res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override, Cookie, Cookies, Token')
       }
-      res.header('Set-Cookie', 'kokoro.codes')
+      console.log(`Headers`, res.headers)
       let project = await db.findInHash(PROJECTS_INDEX_HTML(), subdomain[0])
       if (!project) return res.status(404).send({ err: `No such project ${subdomain} found` })
       project = JSON.parse(project)
