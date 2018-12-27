@@ -32,7 +32,7 @@ const start = function() {
   }
   app.use(session({
     store: new RedisStore(config.REDIS),
-    secret: sha1('SOME.SECRT.ROCET.BA.BA.BA.BANK.ZA.KOGDA'),
+    secret: sha1(config.AUTH.COOKIE_SECRET),
     resave: true,
     saveUninitialized: false,
   }))

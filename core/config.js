@@ -26,6 +26,7 @@ if (process.env.REDIS_PORT) REDIS.port = process.env.REDIS_PORT
 
 AUTH.GH_CLIENT_ID = process.env.GH_CLIENT_ID
 AUTH.GH_CLIENT_SECRET = process.env.GH_CLIENT_SECRET
+AUTH.COOKIE_SECRET = process.env.COOKIE_SECRET
 PUSHER.cluster = 'ap3'
 PUSHER.KEY = process.env.PUSHER_KEY
 PUSHER.APP_ID = process.env.APP_ID
