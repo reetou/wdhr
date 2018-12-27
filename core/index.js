@@ -83,14 +83,15 @@ const start = function() {
         res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override, Cookie, Cookies')
       }
     } else if (req.headers.origin || req.headers.host) {
+      let header = req.headers.origin || `http://${req.headers.host}`
+      const subdomain = header.match(/(?<=\/\/)(.*)(?=\.kokoro.codes)/gi)
+      if (!subdomain) return next()
+      res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS')
       if (req.method === 'OPTIONS') {
         res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override, Cookie, Cookies')
       }
       res.header('Access-Control-Allow-Origin', header)
       res.header('Access-Control-Allow-Credentials', true)
-      let header = req.headers.origin || `http://${req.headers.host}`
-      const subdomain = header.match(/(?<=\/\/)(.*)(?=\.kokoro.codes)/gi)
-      if (!subdomain) return next()
       console.log(`Host`, header)
       console.log(`Session`, req.session)
       let project = await db.findInHash(PROJECTS_INDEX_HTML(), subdomain[0])
