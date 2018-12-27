@@ -25,42 +25,6 @@ const PROJECTS_INDEX_VISITS = projectId => `projects_index_visits_${projectId}`
 const start = function() {
   const db = require('./db')
   console.log(`AUTH REDIRECTS TO ${REDIRECT_URL}`)
-
-  app.use(async (req, res, next) => {
-
-    const allowed = DEBUG ? ['http://localhost:1234', 'http://localhost:80', 'http://kokoro.codes'] : ['http://kokoro.codes']
-    if (allowed.indexOf(req.headers.origin) > -1) {
-      res.header('Access-Control-Allow-Origin', req.headers.origin)
-      res.header('Access-Control-Allow-Credentials', true)
-      res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS')
-      if (req.method === 'OPTIONS') {
-        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override, Cookie, Cookies, Token')
-      }
-    } else if (req.headers.origin || req.headers.host) {
-      let header = req.headers.origin || `http://${req.headers.host}`
-      const subdomain = header.match(/(?<=\/\/)(.*)(?=\.kokoro.codes)/gi)
-      if (!subdomain) return next()
-      let project = await db.findInHash(PROJECTS_INDEX_HTML(), subdomain[0])
-      if (!project) return res.status(404).send({ err: `No such project ${subdomain} found` })
-      project = JSON.parse(project)
-      if (_.has(req, 'user.username')) {
-        console.log(`WRITING NEW VISIT TO PROJECT ${subdomain[0][0]} visitor ${req.user.username}`)
-        await db.addToHash(PROJECTS_INDEX_VISITS(subdomain[0][0]), req.user.username, JSON.stringify({
-          visitor: req.user.username,
-          date: Date.now()
-        }))
-      } else {
-        console.log(`No such user`, req.user)
-      }
-      const html = Buffer.from(JSON.parse(project.indexFile).data).toString()
-      const $ = cheerio.load(html)
-      const bundle = $.html()
-      res.send(bundle)
-    }
-
-    next()
-
-  })
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
   app.use(session({
@@ -102,6 +66,42 @@ const start = function() {
 
   app.use(passport.initialize());
   app.use(passport.session());
+
+  app.use(async (req, res, next) => {
+
+    const allowed = DEBUG ? ['http://localhost:1234', 'http://localhost:80', 'http://kokoro.codes'] : ['http://kokoro.codes']
+    if (allowed.indexOf(req.headers.origin) > -1) {
+      res.header('Access-Control-Allow-Origin', req.headers.origin)
+      res.header('Access-Control-Allow-Credentials', true)
+      res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS')
+      if (req.method === 'OPTIONS') {
+        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override, Cookie, Cookies, Token')
+      }
+    } else if (req.headers.origin || req.headers.host) {
+      let header = req.headers.origin || `http://${req.headers.host}`
+      const subdomain = header.match(/(?<=\/\/)(.*)(?=\.kokoro.codes)/gi)
+      if (!subdomain) return next()
+      let project = await db.findInHash(PROJECTS_INDEX_HTML(), subdomain[0])
+      if (!project) return res.status(404).send({ err: `No such project ${subdomain} found` })
+      project = JSON.parse(project)
+      if (_.has(req, 'user.username')) {
+        console.log(`WRITING NEW VISIT TO PROJECT ${subdomain[0][0]} visitor ${req.user.username}`)
+        await db.addToHash(PROJECTS_INDEX_VISITS(subdomain[0][0]), req.user.username, JSON.stringify({
+          visitor: req.user.username,
+          date: Date.now()
+        }))
+      } else {
+        console.log(`No such user`, req.user)
+      }
+      const html = Buffer.from(JSON.parse(project.indexFile).data).toString()
+      const $ = cheerio.load(html)
+      const bundle = $.html()
+      res.send(bundle)
+    }
+
+    next()
+
+  })
   app.use('/api/auth', require('./api/auth'))
   app.use('/api/user', require('./api/user'))
   app.use('/api/projects', require('./api/projects'))
