@@ -37,6 +37,8 @@ router.post('/static/:id', checkAuth(), mltr.array('app[]'), multerMiddleware(35
     const project = await Projects.getById(req.params.id)
     if (!project) return res.status(404).send({ err: `No public project with id ${req.params.id}` })
     if (!req.files) return res.status(400).send({ err: `No files provided` })
+    const isDirectoryValid = dir => Boolean(dir.match(/^[A-Z0-9-_]+$/gi))
+    if (req.body.folder && !isDirectoryValid(req.body.folder)) return res.status(400).send({ err: `Имя папки ${req.body.folder} невалидно` })
     const result = await Projects.uploadBundle(req.files, req.params.id, req.user.username, req.body.folder)
     if (!result) return res.status(409).send({ err: `No such public project id ${req.params.id} or could not reach s3 service` })
     res.send({ ok: true })
