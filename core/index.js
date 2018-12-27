@@ -1,6 +1,5 @@
 const express = require('express')
 const bodyParser = require('body-parser')
-const cookieParser = require('cookie-parser')
 const config = require('./config')
 const session = require('express-session')
 const User = require('./user')
@@ -58,7 +57,6 @@ const start = function() {
     next()
 
   })
-  app.use(cookieParser(config.AUTH.cookieSign))
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
   app.use(session({
