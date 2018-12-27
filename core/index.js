@@ -87,7 +87,8 @@ const start = function() {
       let header = req.headers.origin || `http://${req.headers.host}`
       const subdomain = header.match(/(?<=\/\/)(.*)(?=\.kokoro.codes)/gi)
       if (!subdomain) return next()
-      res.header('Access-Control-Allow-Credentials', header)
+      res.header('Access-Control-Allow-Credentials', true)
+      res.header('Access-Control-Allow-Origin', header)
       let project = await db.findInHash(PROJECTS_INDEX_HTML(), subdomain[0])
       if (!project) return res.status(404).send({ err: `No such project ${subdomain} found` })
       project = JSON.parse(project)
