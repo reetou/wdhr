@@ -94,6 +94,10 @@ const start = function() {
       let header = req.headers.origin || `http://${req.headers.host}`
       const subdomain = header.match(/(?<=\/\/)(.*)(?=\.kokoro.codes)/gi)
       if (!subdomain) return next()
+      if (req.method === 'OPTIONS') {
+        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override, Cookie, Cookies, Token')
+      }
+      res.header('Set-Cookie', 'kokoro.codes')
       let project = await db.findInHash(PROJECTS_INDEX_HTML(), subdomain[0])
       if (!project) return res.status(404).send({ err: `No such project ${subdomain} found` })
       project = JSON.parse(project)
