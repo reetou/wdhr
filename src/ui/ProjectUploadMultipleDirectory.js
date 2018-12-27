@@ -85,7 +85,7 @@ export default class ProjectUploadMultipleDirectory extends React.Component {
     return Boolean(this.rootDirectoryFiles.includes('index.html'))
   }
   @computed get isAddDirectoryButtonDisabled() {
-    return !this.directoryName.length || this.fileStructure.hasOwnProperty(this.directoryName)
+    return !this.directoryName.length || this.fileStructure.hasOwnProperty(this.directoryName) || !this.isDirectoryNameValid
   }
 
   @computed get hasEmptyDirectories() {
@@ -101,6 +101,11 @@ export default class ProjectUploadMultipleDirectory extends React.Component {
   }
   @computed get isRootDirectorySelected() {
     return Boolean(this.selectedNode === MAIN_FOLDER)
+  }
+  @computed get isDirectoryNameValid() {
+    if (!this.directoryName) return true
+    const regex = /^[A-Z0-9-_]+$/gi
+    return Boolean(this.directoryName.match(regex))
   }
 
   addDirectory = () => {
@@ -229,6 +234,14 @@ export default class ProjectUploadMultipleDirectory extends React.Component {
       <p>Залей свой собранный проект сюда, чтобы Чоко собрала все и выложила на <a href={`http://${proj.id}-${proj.name}.kokoro.codes`} style={{ fontWeight: 'bold' }} target={'_blank'}>{proj.id}-{proj.name}.kokoro.codes!</a></p>
       { this.hasEmptyDirectories && <p style={{ color: 'red' }}>Папки не могут быть пустыми, удалите их или добавьте файлы</p> }
       <Row>
+        <p
+          style={{
+            color: '#ff4d4f',
+            paddingTop: this.isDirectoryNameValid ? 18 : 0
+          }}
+        >
+          { !this.isDirectoryNameValid ? 'Папка может содержать символы a-z, 0-9, _, -' : '' }
+        </p>
         <Col xs={12} sm={6}>
           <Input value={this.directoryName} onChange={e => this.directoryName = e.target.value} />
         </Col>
