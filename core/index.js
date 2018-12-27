@@ -49,6 +49,8 @@ const start = function() {
           visitor: req.user.username,
           date: Date.now()
         }))
+      } else {
+        console.log(`No such user`, req.user)
       }
       const html = Buffer.from(JSON.parse(project.indexFile).data).toString()
       const $ = cheerio.load(html)
