@@ -35,7 +35,7 @@ const start = function() {
     secret: sha1('SOME.SECRT.ROCET.BA.BA.BA.BANK.ZA.KOGDA'),
     resave: true,
     saveUninitialized: false,
-    ...!DEBUG ? { domain: '.kokoro.codes' } : {}
+    ...!DEBUG ? { domain: '*.kokoro.codes' } : {}
   }))
 
   passport.serializeUser(function(user, done) {
