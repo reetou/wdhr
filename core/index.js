@@ -71,6 +71,7 @@ const start = function() {
 
     const allowed = DEBUG ? ['http://localhost:1234', 'http://localhost:80', 'http://kokoro.codes'] : ['http://kokoro.codes']
     if (allowed.indexOf(req.headers.origin) > -1) {
+      console.log(`Origin`, req.headers.origin)
       res.header('Access-Control-Allow-Origin', req.headers.origin)
       res.header('Access-Control-Allow-Credentials', true)
       res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS')
@@ -91,6 +92,7 @@ const start = function() {
           date: Date.now()
         }))
       } else {
+        console.log(`Is authenticated?`, req.isAuthenticated())
         console.log(`No such user`, req.user)
       }
       const html = Buffer.from(JSON.parse(project.indexFile).data).toString()
