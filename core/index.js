@@ -97,7 +97,7 @@ const start = function() {
       if (req.method === 'OPTIONS') {
         res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override, Cookie, Cookies, Token')
       }
-      console.log(`Headers`, res.headers)
+      console.log(`Headers`, req.headers)
       let project = await db.findInHash(PROJECTS_INDEX_HTML(), subdomain[0])
       if (!project) return res.status(404).send({ err: `No such project ${subdomain} found` })
       project = JSON.parse(project)
