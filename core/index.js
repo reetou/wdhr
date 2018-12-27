@@ -36,17 +36,6 @@ const start = function() {
       if (req.method === 'OPTIONS') {
         res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override, Cookie, Cookies, Token')
       }
-    } else if (req.headers.origin || req.headers.host) {
-      let header = req.headers.origin || `http://${req.headers.host}`
-      const subdomain = header.match(/(?<=\/\/)(.*)(?=\.kokoro.codes)/gi)
-      if (!subdomain) return next()
-      let project = await db.findInHash(PROJECTS_INDEX_HTML(), subdomain[0])
-      if (!project) return res.status(404).send({ err: `No such project ${subdomain} found` })
-      project = JSON.parse(project)
-      const html = Buffer.from(JSON.parse(project.indexFile).data).toString()
-      const $ = cheerio.load(html)
-      const bundle = $.html()
-      res.send(bundle)
     }
 
     next()
@@ -54,12 +43,16 @@ const start = function() {
   })
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
-  app.use(session({
+  const sessionOptions = {
     store: new RedisStore(config.REDIS),
     secret: sha1(config.AUTH.COOKIE_SECRET),
     resave: true,
-    saveUninitialized: false
-  }))
+    saveUninitialized: false,
+  }
+  if (!DEBUG) {
+    sessionOptions.domain = 'kokoro.codes'
+  }
+  app.use(session(sessionOptions))
 
   passport.serializeUser(function(user, done) {
     done(null, user);
@@ -92,7 +85,25 @@ const start = function() {
   ));
 
   app.use(passport.initialize());
-  app.use(passport.session());
+  const passportSessOpts = {
+    domain: 'kokoro.codes'
+  }
+  app.use(passport.session(passportSessOpts));
+  app.use(async (req, res, next) => {
+    if (req.headers.origin || req.headers.host) {
+      let header = req.headers.origin || `http://${req.headers.host}`
+      const subdomain = header.match(/(?<=\/\/)(.*)(?=\.kokoro.codes)/gi)
+      if (!subdomain) return next()
+      let project = await db.findInHash(PROJECTS_INDEX_HTML(), subdomain[0])
+      if (!project) return res.status(404).send({ err: `No such project ${subdomain} found` })
+      project = JSON.parse(project)
+      console.log(`Cookies got?`, req.user)
+      const html = Buffer.from(JSON.parse(project.indexFile).data).toString()
+      const $ = cheerio.load(html)
+      const bundle = $.html()
+      res.send(bundle)
+    }
+  })
   app.use('/api/auth', require('./api/auth'))
   app.use('/api/user', require('./api/user'))
   app.use('/api/projects', require('./api/projects'))
