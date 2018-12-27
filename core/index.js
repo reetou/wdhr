@@ -50,7 +50,9 @@ const start = function() {
     saveUninitialized: false,
   }
   if (!DEBUG) {
-    sessionOptions.domain = '.kokoro.codes'
+    sessionOptions.cookie = {
+      domain: '.kokoro.codes'
+    }
   }
   app.use(session(sessionOptions))
 
