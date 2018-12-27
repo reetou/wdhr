@@ -27,6 +27,9 @@ const start = function() {
   console.log(`AUTH REDIRECTS TO ${REDIRECT_URL}`)
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
+  if (!DEBUG) {
+    console.log(`Set DOMAIN COOKIE .KOKORO.CODES!`)
+  }
   app.use(session({
     store: new RedisStore(config.REDIS),
     secret: sha1('SOME.SECRT.ROCET.BA.BA.BA.BANK.ZA.KOGDA'),
