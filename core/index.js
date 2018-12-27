@@ -35,7 +35,7 @@ const start = function() {
     secret: sha1('SOME.SECRT.ROCET.BA.BA.BA.BANK.ZA.KOGDA'),
     resave: true,
     saveUninitialized: false,
-    ...!DEBUG ? { domain: '*.kokoro.codes' } : {}
+    ...!DEBUG ? { domain: '.kokoro.codes' } : {}
   }))
 
   passport.serializeUser(function(user, done) {
@@ -80,17 +80,19 @@ const start = function() {
       res.header('Access-Control-Allow-Credentials', true)
       res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS')
       if (req.method === 'OPTIONS') {
-        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override, Cookie, Cookies, Token')
+        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override, Cookie, Cookies')
       }
     } else if (req.headers.origin || req.headers.host) {
-
+      if (req.method === 'OPTIONS') {
+        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override, Cookie, Cookies')
+      }
+      res.header('Access-Control-Allow-Origin', header)
+      res.header('Access-Control-Allow-Credentials', true)
       let header = req.headers.origin || `http://${req.headers.host}`
       const subdomain = header.match(/(?<=\/\/)(.*)(?=\.kokoro.codes)/gi)
       if (!subdomain) return next()
-      res.header('Access-Control-Allow-Credentials', true)
       console.log(`Host`, header)
       console.log(`Session`, req.session)
-      res.header('Access-Control-Allow-Origin', header)
       let project = await db.findInHash(PROJECTS_INDEX_HTML(), subdomain[0])
       if (!project) return res.status(404).send({ err: `No such project ${subdomain} found` })
       project = JSON.parse(project)
