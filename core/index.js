@@ -31,7 +31,8 @@ const start = function() {
     store: new RedisStore(config.REDIS),
     secret: sha1('SOME.SECRT.ROCET.BA.BA.BA.BANK.ZA.KOGDA'),
     resave: true,
-    saveUninitialized: false
+    saveUninitialized: false,
+    ...!DEBUG ? { domain: '.kokoro.codes' } : {}
   }))
 
   passport.serializeUser(function(user, done) {
