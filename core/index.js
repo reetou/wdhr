@@ -101,7 +101,7 @@ const start = function() {
       if (!project) return res.status(404).send({ err: `No such project ${subdomain} found` })
       project = JSON.parse(project)
       const projectId = subdomain[0][0]
-      if (_.has(req, 'user.username') && projectId) { // && project.author !== _.at(req, 'user.username')[0]
+      if (_.has(req, 'user.username') && projectId && project.author !== _.at(req, 'user.username')[0]) { // && project.author !== _.at(req, 'user.username')[0]
         console.log(`Adding visitor ${req.user.username} to project ${projectId}, name: ${subdomain[0]}`)
         let visitor = await db.findInHash(PROJECTS_INDEX_VISITS(projectId), req.user.username)
         let visits = []
