@@ -161,11 +161,11 @@ class Projects {
     }
     const projectSubdomainName = `${project.id}-${project.name.toLowerCase()}`
     console.log(`Saving bundle`)
-    await this.saveBundle(result, projectSubdomainName, folder, indexFile)
+    await this.saveBundle(result, projectSubdomainName, folder, indexFile, project.author)
     return true
   }
 
-  async saveBundle(files, name, folder = '', indexFile) {
+  async saveBundle(files, name, folder = '', indexFile, projectAuthor) {
     let projectTree = await db.findInHash(PROJECTS_BUNDLES(), name)
     const now = Date.now()
     if (!projectTree) {
@@ -180,7 +180,7 @@ class Projects {
     console.log(`PROJECT NAME TO SAVE: ${name} Got project tree, saving to ${folder || rootFolder}`)
     projectTree[folder || rootFolder] = files
     await db.addToHash(PROJECTS_BUNDLES(), name, JSON.stringify(projectTree))
-    if (indexFile) await db.addToHash(PROJECTS_INDEX_HTML(), name, JSON.stringify({ indexFile: JSON.stringify(indexFile) }))
+    if (indexFile) await db.addToHash(PROJECTS_INDEX_HTML(), name, JSON.stringify({ author: projectAuthor, indexFile: JSON.stringify(indexFile) }))
   }
 
   validateBundle(fileBuff, projectDir) {
