@@ -51,7 +51,7 @@ const start = function() {
   }
   if (!DEBUG) {
     sessionOptions.cookie = {
-      domain: '.kokoro.codes'
+      domain: 'kokoro.codes'
     }
   }
   app.use(session(sessionOptions))
@@ -87,10 +87,7 @@ const start = function() {
   ));
 
   app.use(passport.initialize());
-  const passportSessOpts = {
-    domain: '.kokoro.codes'
-  }
-  app.use(passport.session(passportSessOpts));
+  app.use(passport.session());
   app.use(async (req, res, next) => {
     if (req.headers.origin || req.headers.host) {
       let header = req.headers.origin || `http://${req.headers.host}`
