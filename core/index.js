@@ -107,7 +107,7 @@ const start = function() {
         let visits = []
         if (visitor) {
           visitor = JSON.parse(visitor)
-          visits = visitor.visits.length > 2 ? [_.last(visitor.visits)] : visitor.visits
+          visits = visitor.visits.length > 100 ? [_.last(visitor.visits)] : visitor.visits
         }
         const lastVisitDebounce = 3600000 // 1hour
         const lastVisit = _.last(visits)
