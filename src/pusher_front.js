@@ -27,7 +27,7 @@ class Pusher {
 
     const channel = this.pusher.subscribe(`user_${login}`);
     channel.bind(ev.PROJECT_PARTICIPATION_ACCEPT, data => {
-      const key = `open${Date.now()}`;
+      const key = `open_${ev.PROJECT_PARTICIPATION_ACCEPT}_${Date.now()}`;
       const btn = (
         <Button type="primary" size="small" onClick={() => notification.close(key)}>
           OK
@@ -44,7 +44,7 @@ class Pusher {
     });
 
     channel.bind(ev.PROJECT_PARTICIPATION_REJECT, data => {
-      const key = `open${Date.now()}`;
+      const key = `open_${ev.PROJECT_PARTICIPATION_REJECT}_${Date.now()}`;
       const btn = (
         <Button type="primary" size="small" onClick={() => notification.close(key)}>
           OK :(
@@ -61,7 +61,7 @@ class Pusher {
     })
 
     channel.bind(ev.PROJECT_RATE, data => {
-      const key = `open${Date.now()}`;
+      const key = `open_${ev.PROJECT_RATE}_${Date.now()}`;
       const btn = (
         <Button type="primary" size="small" onClick={() => notification.close(key)}>
           Круто!
@@ -78,10 +78,10 @@ class Pusher {
     })
 
     channel.bind(ev.PROJECT_RATE_REVERT, data => {
-      const key = `open${Date.now()}`;
+      const key = `open_${ev.PROJECT_RATE_REVERT}_${Date.now()}`;
       const btn = (
         <Button type="primary" size="small" onClick={() => notification.close(key)}>
-          Круто!
+          Ладно
         </Button>
       );
       notification.open({
@@ -95,10 +95,10 @@ class Pusher {
     })
 
     channel.bind(ev.PROJECT_PARTICIPATION_REQUEST, data => {
-      const key = `open${Date.now()}`;
+      const key = `open_${ev.PROJECT_PARTICIPATION_REQUEST}_${Date.now()}`;
       const btn = (
         <Button type="primary" size="small" onClick={() => notification.close(key)}>
-          Круто!
+          Понятно
         </Button>
       );
       notification.open({
@@ -117,6 +117,22 @@ class Pusher {
 
     channel.bind(ev.PARTICIPATOR_LEAVE, data => {
       console.log(`Participator left`, data)
+    })
+
+    channel.bind(ev.PROJECT_VISIT, data => {
+      const key = `open_${ev.PROJECT_VISIT}_${Date.now()}`;
+      const btn = (
+        <Button type="primary" size="small" onClick={() => notification.close(key)}>
+          Невероятно!
+        </Button>
+      );
+      notification.open({
+        message: 'Посещение проекта',
+        description: `Пользователь ${data.visitor} только что посетил ваш проект ${data.name} на ${data.domain}`,
+        btn,
+        duration: 0,
+        key,
+      });
     })
   }
 

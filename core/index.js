@@ -11,6 +11,7 @@ const { asyncFn } = require('./middleware')
 const cheerio = require('cheerio')
 const RedisStore = require('connect-redis')(session);
 const axios = require('axios')
+const pusher = require('./pusher_back')
 const _ = require('lodash')
 const DEBUG = process.env.NODE_ENV !== 'production'
 const REDIRECT_URL = DEBUG ? 'http://localhost:4000' : 'http://kokoro.codes'
@@ -100,7 +101,7 @@ const start = function() {
       if (!project) return res.status(404).send({ err: `No such project ${subdomain} found` })
       project = JSON.parse(project)
       const projectId = subdomain[0][0]
-      if (_.has(req, 'user.username') && projectId && project.author !== _.at(req, 'user.username')[0]) {
+      if (_.has(req, 'user.username') && projectId) { // && project.author !== _.at(req, 'user.username')[0]
         console.log(`Adding visitor ${req.user.username} to project ${projectId}, name: ${subdomain[0]}`)
         let visitor = await db.findInHash(PROJECTS_INDEX_VISITS(projectId), req.user.username)
         let visits = []
@@ -109,6 +110,11 @@ const start = function() {
           visits = visitor.visits
         }
         visits.push(Date.now())
+        pusher.projectBundleVisit(project.author, {
+          visitor: req.user.username,
+          name: project.name,
+          domain: header
+        })
         await db.addToHash(PROJECTS_INDEX_VISITS(projectId), req.user.username, JSON.stringify({
           visitor: req.user.username,
           visits
