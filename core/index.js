@@ -109,12 +109,17 @@ const start = function() {
           visitor = JSON.parse(visitor)
           visits = visitor.visits
         }
+        const lastVisitDebounce = 3600000 // 1hour
+        const lastVisit = _.last(visits)
+        const timeFromLastVisit = Date.now() - lastVisit
+        if (!visits.length || timeFromLastVisit >= lastVisitDebounce) {
+          pusher.projectBundleVisit(project.author, {
+            visitor: req.user.username,
+            name: project.name,
+            domain: header
+          })
+        }
         visits.push(Date.now())
-        pusher.projectBundleVisit(project.author, {
-          visitor: req.user.username,
-          name: project.name,
-          domain: header
-        })
         await db.addToHash(PROJECTS_INDEX_VISITS(projectId), req.user.username, JSON.stringify({
           visitor: req.user.username,
           visits
