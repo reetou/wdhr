@@ -96,11 +96,17 @@ const start = function() {
       if (req.method === 'OPTIONS') {
         res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override, Cookie, Cookies, Token')
       }
-      console.log(`Headers`, req.headers)
       let project = await db.findInHash(PROJECTS_INDEX_HTML(), subdomain[0])
       if (!project) return res.status(404).send({ err: `No such project ${subdomain} found` })
       project = JSON.parse(project)
-      console.log(`Cookies got?`, req.user)
+      const projectId = subdomain[0][0]
+      if (_.has(req, 'user.username') && projectId) {
+        console.log(`Adding visitor ${req.user.username} to project ${projectId}, name: ${subdomain[0]}`)
+        await db.addToHash(PROJECTS_INDEX_VISITS(projectId), req.user.username, JSON.stringify({
+          visitor: req.user.username,
+          date: Date.now()
+        }))
+      }
       const html = Buffer.from(JSON.parse(project.indexFile).data).toString()
       const $ = cheerio.load(html)
       const bundle = $.html()
