@@ -7,7 +7,8 @@
     "build:parcel": "NODE_ENV=production parcel build index.html --no-minify",
     "build": "webpack",
     "production": "webpack --mode=production",
-    "prod-build": "rm dist_wb/* && rm /var/www/* && yarn production && cp dist_wb/* /var/www/"
+    "prod-build": "rm -rf dist_wb/* && rm /var/www/* && yarn production && cp dist_wb/* /var/www/",
+    "build-prod": "rm -rf dist_wb/* && rm /var/www/* && yarn production && cp dist_wb/* /var/www/"
   },
   "dependencies": {
     "@babel/core": "^7.0.0-0",
