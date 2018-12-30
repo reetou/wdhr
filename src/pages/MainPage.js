@@ -27,6 +27,7 @@ import Project from "./Project"
 import ProjectRequests from "./ProjectRequests"
 import ProjectMembers from "./ProjectMembers"
 import ProjectUpload from "./ProjectUpload"
+import IndexPage from "./IndexPage"
 
 @inject('app', 'auth', 'project', 'article')
 @withRouter
@@ -77,27 +78,35 @@ export default class MainPage extends React.Component {
   render() {
     const app = this.props.app
     const auth = this.props.auth
+    console.log(`This props history`, this.props.history)
+    const isOnMain = this.props.history.location.pathname === '/'
     return (
       <Layout style={{ height: '100vh' }}>
-        <Sider/>
+        <Sider
+          collapsible={!isOnMain}
+          collapsed={isOnMain ? true : app.collapsed}
+        />{/**/}
         <Layout>
-          <Header style={{ background: '#fff', padding: 0 }}>
-            <Icon
-              style={{
-                fontSize: 20,
-                marginTop: 10,
-                marginLeft: 10,
-                cursor: 'pointer'
-              }}
-              id={'collapse-custom-button'}
-              className="trigger"
-              type={app.collapsed ? 'menu-unfold' : 'menu-fold'}
-              onClick={() => app.collapsed = !app.collapsed}
-            />
-            <span style={{ marginLeft: 10 }}>{app.header}</span>
-          </Header>
-          <Content style={{ margin: '16px 16px 0 16px' }}>
-            <Route exact path="/" render={() => <CustomRedirecter><Profile /></CustomRedirecter>} />
+          {
+            this.props.history.location.pathname !== '/' ?
+              <Header style={{ background: '#fff', padding: 0 }}>
+                <Icon
+                  style={{
+                    fontSize: 20,
+                    marginTop: 10,
+                    marginLeft: 10,
+                    cursor: 'pointer'
+                  }}
+                  id={'collapse-custom-button'}
+                  className="trigger"
+                  type={app.collapsed ? 'menu-unfold' : 'menu-fold'}
+                  onClick={() => app.collapsed = !app.collapsed}
+                />
+                <span style={{ marginLeft: 10 }}>{app.header}</span>
+              </Header> : null
+          }
+          <Content style={{ margin: isOnMain ? 0 : '16px 16px 0 16px' }}>
+            <Route exact path="/" render={() => <IndexPage />} />
             <Route path="/profile" render={() => <CustomRedirecter><Profile/></CustomRedirecter>} />
             <Route path={'/login'} component={Login} />
             <Route exact path="/myprojects" render={() => <CustomRedirecter><MyProjects/></CustomRedirecter>} />

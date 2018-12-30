@@ -20,8 +20,8 @@ export default class UISider extends React.Component {
     return (
       <Sider
         trigger={null}
-        collapsible
-        collapsed={app.collapsed}
+        collapsible={this.props.collapsible}
+        collapsed={this.props.collapsed}
         breakpoint="sm"
         collapsedWidth="50"
         onBreakpoint={(broken) => { console.log(broken); }}

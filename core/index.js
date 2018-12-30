@@ -29,7 +29,7 @@ const start = function() {
 
   app.use(async (req, res, next) => {
 
-    const allowed = DEBUG ? ['http://localhost:1234', 'http://localhost:80', 'http://kokoro.codes'] : ['http://kokoro.codes']
+    const allowed = DEBUG ? ['http://localhost:1234', 'http://localhost:80', 'http://kokoro.codes', 'http://localhost:9000'] : ['http://kokoro.codes']
     if (allowed.indexOf(req.headers.origin) > -1) {
       res.header('Access-Control-Allow-Origin', req.headers.origin)
       res.header('Access-Control-Allow-Credentials', true)
@@ -61,9 +61,9 @@ const start = function() {
     done(null, user);
   });
 
-  passport.deserializeUser(function(obj, done) {
+  passport.deserializeUser(async function(obj, done) {
     console.log(`Deserialized`)
-    User.updatePublicRepos(obj._json.repos_url, obj.username)
+    await User.updatePublicRepos(obj._json.repos_url, obj.username)
     done(null, obj);
   });
 
@@ -78,9 +78,9 @@ const start = function() {
     },
     async (accessToken, refreshToken, profile, done) => {
       // asynchronous verification, for effect...
-      console.log(`accessToken: ${accessToken}`)
-      console.log(`refreshToken: ${refreshToken}`)
-      console.log(`profile:`, profile)
+      // console.log(`accessToken: ${accessToken}`)
+      // console.log(`refreshToken: ${refreshToken}`)
+      // console.log(`profile:`, profile)
       await User.register(profile._json)
       await db.addToHash('tokens', sha1(profile._json.login), accessToken)
       return done(null, profile)

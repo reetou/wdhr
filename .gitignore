@@ -3,3 +3,6 @@ node_modules
 .cache
 dist
 .env
+.DS_Store
+dist_wb
+yarn-error.log

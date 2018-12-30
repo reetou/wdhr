@@ -14,7 +14,7 @@ axiosConfigured.defaults.withCredentials = true
 
 export default class AppStore {
   @observable loggedIn = false
-  @observable collapsed = false
+  @observable collapsed = true
   @observable header = 'WDH'
   @observable path = '/'
   @observable API_HOST = process.env.NODE_ENV === 'production' ? 'http://kokoro.codes' : 'http://localhost:4000'
