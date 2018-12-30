@@ -5,7 +5,7 @@ import { Link, withRouter } from 'react-router-dom'
 import {
   Form, Icon, Input, Button, Checkbox,
 } from 'antd';
-const _ = require('lodash')
+import * as _ from 'lodash'
 
 const FormItem = Form.Item;
 

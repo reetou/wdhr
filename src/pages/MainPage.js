@@ -1,16 +1,13 @@
 import React from 'react'
-import { observable } from 'mobx'
 import { observer, inject } from 'mobx-react'
 import Sider from '../ui/Sider'
 import {
-  Layout, Menu, Breadcrumb, Icon, Button
+  Layout, Icon
 } from 'antd';
 const {
-  Header, Content, Footer,
+  Header, Content,
 } = Layout;
-const SubMenu = Menu.SubMenu;
-import 'antd/dist/antd.css'
-import { BrowserRouter as Router, Route, Link, Redirect, Switch } from "react-router-dom";
+import { Route } from "react-router-dom";
 import { withRouter } from "react-router-dom"
 import DevTools from 'mobx-react-devtools'
 import About from "./About"
@@ -78,7 +75,7 @@ export default class MainPage extends React.Component {
   render() {
     const app = this.props.app
     const auth = this.props.auth
-    console.log(`This props history`, this.props.history)
+    console.log(`This props shistory`, this.props.history)
     const isOnMain = this.props.history.location.pathname === '/'
     return (
       <Layout style={{ height: '100vh' }}>

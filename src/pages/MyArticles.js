@@ -5,7 +5,7 @@ import { Link, withRouter } from 'react-router-dom'
 import {
   Icon, Input, Checkbox, Button, List, Spin, Avatar
 } from 'antd';
-const _ = require('lodash')
+import * as _ from 'lodash'
 
 
 const IconText = ({ type, text, rated, onClick }) => (

@@ -7,7 +7,7 @@ import {
 } from 'antd'
 import ProjectUploadSingleDirectory from "../ui/ProjectUploadSingleDirectory"
 import ProjectUploadMultipleDirectory from "../ui/ProjectUploadMultipleDirectory"
-const _ = require('lodash')
+import * as _ from 'lodash'
 
 @inject('app', 'auth', 'project')
 @withRouter

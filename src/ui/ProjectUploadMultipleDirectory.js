@@ -5,7 +5,7 @@ import { Link, withRouter } from 'react-router-dom'
 import {
   Icon, Button, Row, Col, Upload, Menu, Tooltip, Input, Tree, Dropdown, message
 } from 'antd'
-const _ = require('lodash')
+import * as _ from 'lodash'
 const DirectoryTree = Tree.DirectoryTree;
 const { TreeNode } = Tree;
 

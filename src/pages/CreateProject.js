@@ -6,7 +6,7 @@ import {
   Layout, Button, Icon
 } from 'antd'
 import BookAppearAnimation from "../ui/BookAppearAnimation"
-const _ = require('lodash')
+import * as _ from 'lodash'
 @inject('auth', 'project')
 @withRouter
 @observer

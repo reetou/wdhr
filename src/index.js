@@ -5,11 +5,11 @@ import createStores from './stores'
 import MainPage from './pages/MainPage'
 import { BrowserRouter as Router, Route, Link, Redirect, Switch } from "react-router-dom";
 import './main.css'
+import '../theme.scss'
 
 const stores = createStores()
 
 
-console.log('Stores APP', stores.app)
 ReactDOM.render(
   <Provider {...stores}>
     <Router>

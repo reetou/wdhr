@@ -4,6 +4,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const TerserPlugin = require('terser-webpack-plugin');
+const AntdScssThemePlugin = require('antd-scss-theme-plugin');
 
 
 const htmlWebpackOptions = {
@@ -18,7 +19,14 @@ module.exports = {
   optimization: {
     minimizer: [new TerserPlugin()],
   },
-  plugins: [new HtmlWebpackPlugin(htmlWebpackOptions), new MiniCssExtractPlugin()],
+  plugins: [
+    new MiniCssExtractPlugin(),
+    // new ExtractTextPlugin({
+    //   filename: 'style[hash].css'
+    // }),
+    new HtmlWebpackPlugin(htmlWebpackOptions),
+    new AntdScssThemePlugin('./theme.scss'),
+  ],
   module: {
     rules: [
       { test: /\.png$/, use: 'file-loader' },
@@ -33,25 +41,23 @@ module.exports = {
         ]
       },
       {
-        test: /\.sass$/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: ['css-loader', 'sass-loader']
-        })
+        test: /\.less$/,
+        use: ['style-loader', 'css-loader', AntdScssThemePlugin.themify({
+          loader: 'less-loader',
+          options: {
+            javascriptEnabled: true,
+            sourceMap: false
+          }
+        })]
       },
       {
         test: /\.scss$/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: ['css-loader', 'sass-loader']
-        })
-      },
-      {
-        test: /\.less$/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: ['css-loader', 'less-loader']
-        })
+        use: ['style-loader', 'css-loader', AntdScssThemePlugin.themify({
+          loader: 'sass-loader',
+          options: {
+            sourceMap: false
+          }
+        })]
       },
     ],
   },

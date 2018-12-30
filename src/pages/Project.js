@@ -9,7 +9,7 @@ import RequestParticipationFormDrawer from "../ui/RequestParticipationFormDrawer
 import { toJS } from "mobx/lib/mobx"
 import EditProjectFormDrawer from "../ui/EditProjectFormDrawer"
 import UIAvatar from "../ui/Avatar"
-const _ = require('lodash')
+import * as _ from 'lodash'
 
 const getCoeff = (project) => {
   let participate_coeff = 0

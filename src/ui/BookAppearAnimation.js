@@ -1,11 +1,7 @@
 import React from 'react'
 import { observable } from 'mobx'
 import { observer, inject } from 'mobx-react'
-import {
-  Form, Icon, Input, Button, Checkbox, Select, InputNumber, Layout
-} from 'antd'
 import * as Rx from "rxjs/Rx"
-const _ = require('lodash')
 const animation = {
   sequence_1: require('../img/animations/book_appear/1.png'),
   sequence_2: require('../img/animations/book_appear/2.png'),

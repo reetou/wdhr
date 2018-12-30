@@ -1,13 +1,7 @@
 import React from 'react'
 import { observable } from 'mobx'
 import { observer, inject } from 'mobx-react'
-import Sider from '../ui/Sider'
-import {
-  Row, Card, Col
-} from 'antd'
 import { withRouter } from 'react-router-dom'
-import UIAvatar from "../ui/Avatar"
-import ProfileStats from "../ui/ProfileStats"
 import RiderAnimation from "../ui/RiderAnimation"
 
 @inject('app', 'auth', 'article', 'project')

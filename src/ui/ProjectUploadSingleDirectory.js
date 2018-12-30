@@ -5,7 +5,7 @@ import { Link, withRouter } from 'react-router-dom'
 import {
   Icon, Button, Row, Col, Upload, Switch, Tooltip
 } from 'antd'
-const _ = require('lodash')
+import * as _ from 'lodash'
 
 
 @inject('app', 'auth', 'project')

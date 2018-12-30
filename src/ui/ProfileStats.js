@@ -6,7 +6,7 @@ import {
   Row, Card, Col
 } from 'antd'
 import { withRouter } from 'react-router-dom'
-const _ = require('lodash')
+import * as _ from 'lodash'
 
 const CardHeadTitle = ({ title }) => <div
   style={{

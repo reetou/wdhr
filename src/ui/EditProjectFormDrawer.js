@@ -4,7 +4,7 @@ import { withRouter } from 'react-router-dom'
 import {
   Drawer, Form, Button, Col, Row, Input, Select, DatePicker, Icon, Upload, Tooltip
 } from 'antd'
-const _ = require('lodash')
+import * as _ from 'lodash'
 const TextArea = Input.TextArea
 
 @inject('app', 'auth', 'project')

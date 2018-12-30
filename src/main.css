@@ -1,22 +1,3 @@
-.example-appear {
-    opacity: 0.01;
-}
-
-.example-appear.example-appear-active {
-    opacity: 1;
-    transition: opacity .5s ease-in;
-}
-
-
-.animated-icon {
-    animation-duration: .5s;
-    animation-name: slidein;
-}
-
-.animated-icon-appear {
-    animation-duration: .1s;
-    animation-name: slidein;
-}
 
 .ant-menu-inline-collapsed .menu-item-collapsed {
     padding: 8px 16px !important;

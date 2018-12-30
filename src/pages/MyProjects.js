@@ -7,7 +7,7 @@ import {
 } from 'antd';
 import BookOpenAnimation from "../ui/BookOpenAnimation"
 import ProjectItem from "../ui/ProjectItem"
-const _ = require('lodash')
+import * as _ from 'lodash'
 
 
 const IconText = ({ type, text, rated, onClick, animate }) => (

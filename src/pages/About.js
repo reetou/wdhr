@@ -1,10 +1,6 @@
 import React from 'react'
 import { observable } from 'mobx'
 import { observer, inject } from 'mobx-react'
-import Sider from '../ui/Sider'
-import {
-  Layout, Menu, Breadcrumb, Icon, Button
-} from 'antd';
 
 @inject('app')
 @observer

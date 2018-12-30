@@ -5,7 +5,7 @@ import {
   Form, Icon, Input, Button, Checkbox, Select, InputNumber, Layout
 } from 'antd'
 import BookAppearAnimation from "./BookAppearAnimation"
-const _ = require('lodash')
+import * as _ from 'lodash'
 
 const FormItem = Form.Item;
 const TextArea = Input.TextArea

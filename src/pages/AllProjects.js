@@ -1,13 +1,10 @@
 import React from 'react'
-import { observable } from 'mobx'
 import { observer, inject } from 'mobx-react'
 import { Link, withRouter } from 'react-router-dom'
 import {
-  Icon, Input, Button, Checkbox, List, Avatar, Spin,
+  Icon, Button, List, Spin,
 } from 'antd';
-import InfiniteScroll from 'react-infinite-scroller';
 import ProjectItem from "../ui/ProjectItem"
-const _ = require('lodash')
 
 const IconText = ({ type, text, rated, onClick, inactiveColor }) => (
   <span style={{

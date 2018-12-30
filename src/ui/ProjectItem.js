@@ -6,7 +6,7 @@ import {
   Icon, Input, Button, Checkbox, List, Avatar, Spin,
 } from 'antd';
 import InfiniteScroll from 'react-infinite-scroller';
-const _ = require('lodash')
+import * as _ from 'lodash'
 
 const IconText = ({ type, text, rated, onClick }) => (
   <span style={rated ? { color: 'green' } : {}} onClick={onClick}>

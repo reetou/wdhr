@@ -5,8 +5,6 @@ import { Link, withRouter } from 'react-router-dom'
 import {
   Icon, Input, Button, Checkbox, List, Avatar, Spin,
 } from 'antd';
-import InfiniteScroll from 'react-infinite-scroller';
-const _ = require('lodash')
 
 const IconText = ({ type, text, rated, onClick }) => (
   <span style={rated ? { color: 'green' } : {}} onClick={onClick}>

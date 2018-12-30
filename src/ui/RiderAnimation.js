@@ -6,8 +6,6 @@ import {
 } from 'antd'
 import * as mobxUtils from 'mobx-utils'
 import * as Rx from "rxjs/Rx"
-import { switchMap, switchMapTo } from 'rxjs/operators';
-const _ = require('lodash')
 import {
   Stage, Layer, Rect, Text, Image, FastLayer, Sprite
 } from 'react-konva'

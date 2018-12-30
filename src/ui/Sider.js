@@ -1,11 +1,9 @@
 import React from 'react'
 import { observer, inject } from 'mobx-react'
 import {
-  Layout, Menu, Breadcrumb, Icon, Button
+  Layout, Menu, Icon
 } from 'antd';
 import { Link } from "react-router-dom"
-import BookAppearAnimation from "./BookAppearAnimation"
-import BookOpenAnimation from "./BookOpenAnimation"
 const {
   Sider,
 } = Layout;
@@ -23,7 +21,7 @@ export default class UISider extends React.Component {
         collapsible={this.props.collapsible}
         collapsed={this.props.collapsed}
         breakpoint="sm"
-        collapsedWidth="50"
+        collapsedWidth="80"
         onBreakpoint={(broken) => { console.log(broken); }}
         onCollapse={(collapsed, type) => app.collapsed = collapsed}
       >
