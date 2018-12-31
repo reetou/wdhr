@@ -28,11 +28,21 @@ export default class IndexPage extends React.Component {
             <Button style={{ width: 340 }}><ScrollLink to={'start'} smooth={true} duration={600}>Начать</ScrollLink></Button>
           </div>
         </div>
-        <RiderAnimation style={{ minHeight: '80vh' }} />
-        <div style={{ minHeight: '40vh' }}>
-          <ScrollElement name={'start'}>
-            <h2 style={headStyle}>Начни с регистрации на <a href={'https://github.com/join'} target={'_blank'}>гитхабе</a></h2>
-            <h2 style={headStyle}>Или <Link to={'/login'}>залогинись</Link>, если ты уже.</h2>
+        <div style={{ minHeight: '100vh' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 40 }}>
+            <ScrollElement name={'start'}>
+              <h2 style={headStyle}>Начни с регистрации на <a href={'https://github.com/join'} target={'_blank'}>гитхабе</a></h2>
+              <h2 style={headStyle}>Или <Link to={'/login'}>залогинись</Link>, если ты уже.</h2>
+              <Button style={{ width: 340 }}><ScrollLink to={'rules'} smooth={true} duration={600}>Заповеди бывалых</ScrollLink></Button>
+            </ScrollElement>
+          </div>
+          <RiderAnimation />
+        </div>
+        <div style={{ minHeight: '100vh', paddingTop: 50, paddingLeft: 30 }}>
+          <ScrollElement name={'rules'}>
+            {
+              app.rules.map((r, i) => <h3 style={headStyle}>{i + 1}. {r}</h3>)
+            }
           </ScrollElement>
         </div>
       </div>
