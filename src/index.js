@@ -4,10 +4,10 @@ import { Provider } from 'mobx-react'
 import createStores from './stores'
 import MainPage from './pages/MainPage'
 import { BrowserRouter as Router, Route, Link, Redirect, Switch } from "react-router-dom";
+// import './theme.less'
 import './style.scss'
 
 const stores = createStores()
-
 
 ReactDOM.render(
   <Provider {...stores}>
