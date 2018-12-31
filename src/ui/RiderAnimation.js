@@ -226,9 +226,11 @@ export default class RiderAnimation extends React.Component {
     return (
       <Stage
         style={{
+          ...this.props.style,
           cursor: this.pointCursor ? 'pointer' : 'default',
           width: 800
         }}
+        className={'game'}
         width={800}
         height={600}
       >

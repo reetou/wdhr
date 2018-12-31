@@ -79,10 +79,13 @@ export default class MainPage extends React.Component {
     const isOnMain = this.props.history.location.pathname === '/'
     return (
       <Layout style={{ height: '100vh' }}>
-        <Sider
-          collapsible={!isOnMain}
-          collapsed={isOnMain ? true : app.collapsed}
-        />{/**/}
+        {
+          !isOnMain ?
+            <Sider
+              collapsible={!isOnMain}
+              collapsed={isOnMain ? true : app.collapsed}
+            /> : null
+        }
         <Layout>
           {
             this.props.history.location.pathname !== '/' ?
