@@ -8,7 +8,7 @@ const User = require('../user')
 const DEBUG = process.env.NODE_ENV !== 'production'
 const passport = require('passport')
 const { asyncFn, checkForFields, checkAuth, checkIfLoginUnique, uniqueFields } = require('../middleware')
-const REDIRECT_URL = DEBUG ? 'http://localhost:9000' : 'http://kokoro.codes'
+const REDIRECT_URL = DEBUG ? 'http://localhost:9000/profile' : 'http://kokoro.codes/profile'
 
 router.get('/github',
   passport.authenticate('github', { scope: [ 'user:email', 'public_repo', 'read:org' ] }),
