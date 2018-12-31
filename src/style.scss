@@ -1,0 +1,25 @@
+@import '../theme';
+
+.ant-menu-inline-collapsed .menu-item-collapsed {
+  padding: 8px 16px !important;
+  height: 48px;
+  margin: 16px 0;
+}
+
+.ant-menu-inline-collapsed {
+  text-align: center;
+}
+
+@media(max-width: 480px) {
+  #collapse-custom-button {
+    display: none;
+  }
+}
+
+.ant-modal-close-x {
+  padding-top: 20px;
+}
+
+.primary_icon {
+  color: $primary-color;
+}

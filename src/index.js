@@ -4,8 +4,7 @@ import { Provider } from 'mobx-react'
 import createStores from './stores'
 import MainPage from './pages/MainPage'
 import { BrowserRouter as Router, Route, Link, Redirect, Switch } from "react-router-dom";
-import './main.css'
-import '../theme.scss'
+import './style.scss'
 
 const stores = createStores()
 

@@ -259,6 +259,8 @@ export default class ProjectStore {
   @action.bound
   edit(id, data, cb) {
     this.loading = true
+    const backup = toJS(this.userProjects)
+    this.userProjects = []
     const obs = Rx.Observable.fromPromise(this.app.axios({
       url: `${this.app.API_HOST}/api/user/projects/${id}`,
       method: 'PUT',
@@ -273,6 +275,7 @@ export default class ProjectStore {
         err => {
           message.error('Не удалось отредактировать проект')
           console.log('Err at delete project', err)
+          this.userProjects = backup
         },
         () => {
           message.success('Готово', 0.5)
@@ -333,7 +336,6 @@ export default class ProjectStore {
       .subscribe(
         res => {
           this.projects = this.projects.concat(res.data.projects)
-          console.log(`all projects`, toJS(this.projects))
           this.cursor = res.data.cursor
           this.hasMore = Boolean(Number(res.data.cursor))
         },

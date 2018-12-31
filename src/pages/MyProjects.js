@@ -10,8 +10,8 @@ import ProjectItem from "../ui/ProjectItem"
 import * as _ from 'lodash'
 
 
-const IconText = ({ type, text, rated, onClick, animate }) => (
-  <div style={onClick ? { color: '#40a9ff' } : {}} onClick={onClick}>
+const IconText = ({ type, text, rated, onClick }) => (
+  <div className={onClick ? 'primary_icon' : ''} onClick={onClick}>
     <Icon type={type} style={{ marginRight: 8 }} />
     {text}
   </div>

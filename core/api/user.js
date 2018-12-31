@@ -9,6 +9,9 @@ const User = require('../user')
 const Projects = require('../projects')
 const passport = require('passport')
 const Article = require('../article')
+const {
+  performance
+} = require('perf_hooks');
 const { asyncFn, checkForFields, checkAuth, checkIfLoginUnique, uniqueFields } = require('../middleware')
 
 router.get('/', checkAuth(), asyncFn(async (req, res) => {
@@ -25,8 +28,11 @@ router.get('/', checkAuth(), asyncFn(async (req, res) => {
 router.put('/projects/:id', checkAuth(), asyncFn(async (req, res) => {
   const id = req.params.id
   if (!id || !_.isInteger(Number(id))) return res.status(400).send({ err: `Invalid id` })
+  const now = performance.now()
   const result = await Projects.edit(id, req.user.username, req.body)
+  const end = performance.now()
   if (!result) return res.status(403).send({ err: `Editing not own project or no project ${id} found` })
+  console.log(`Edit performed in ${end - now} ms`)
   res.send(result)
 }))
 

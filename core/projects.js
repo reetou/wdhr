@@ -7,6 +7,9 @@ const _ = require('lodash')
 const User = require('./user')
 const logError = require('debug')('projects:error')
 const cheerio = require('cheerio')
+const {
+  performance
+} = require('perf_hooks');
 const sharp = require('sharp')
 const { uploadFiles, upload, makePreview, remove, removeFilesByPrefix, listFiles } = require('./s3')
 
@@ -296,7 +299,6 @@ class Projects {
   }
 
   async getById(id, login, checkOwner = false, checkPrivacy = true, admin = false, withAdditionals = true) {
-    console.log(`Will get project by id`, id)
     let project = await db.findInHash(PROJECTS(), id)
     if (!project && !login) return false
     if (!project) project = await db.findInHash(USER_PROJECTS(login), id)
@@ -460,7 +462,7 @@ class Projects {
   }
 
   async save(project) {
-    console.log('Triggered save?')
+    const start = performance.now()
     const now = Date.now()
     if (!project.id || !project.author) return false
     delete project.owner
@@ -476,6 +478,8 @@ class Projects {
       await db.removeFromHash(PROJECTS(), project.id)
     }
     await db.addToHash(PROJECT_EDITS(project.id), `id_${project.id}_${now}`, JSON.stringify({ date: now, project }))
+    const end = performance.now()
+    console.log(`Performed save in ${end - start} ms`)
     return project
   }
 

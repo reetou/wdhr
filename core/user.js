@@ -54,11 +54,29 @@ class User {
 
   async updatePublicRepos(url, login) {
     const token = await db.findInHash('tokens', sha1(login))
-    if (!token) return
-    const res = await axios({
-      method: 'GET',
-      url: `${url}?access_token=${token}`
-    })
+    let lastUpdate = await db.findInHash(`user_updates`, login)
+    let canUpdate = true
+    if (lastUpdate) {
+      lastUpdate = JSON.parse(lastUpdate)
+      const now = Date.now()
+      const timeFromLastVisit = now - lastUpdate.date
+      if (timeFromLastVisit < 300000) { // 5 minutes debounce on update user repos
+        canUpdate = false
+      }
+    }
+    if (!token || !canUpdate) {
+      return
+    }
+    let res
+    try {
+      res = await axios({
+        method: 'GET',
+        url: `${url}?access_token=${token}`
+      })
+    } catch (e) {
+      console.log(`Cannot reach url to update public repos with token ${token}`)
+      return false
+    }
     const updatedRepos = await Promise.all(res.data.filter(r => r.owner.login === login && !r.fork && !r.private).map(async r => {
       const updated = _.cloneDeep(r)
       delete updated.owner
@@ -70,6 +88,7 @@ class User {
     const currentReposNames = currentRepos.map(r => r.name)
     const reposNamesToDelete = currentReposNames.filter(v => !updatedReposNames.includes(v))
     await Promise.all(reposNamesToDelete.map(async name => await db.removeFromHash(USER_PUBLIC_REPOS(login), name)))
+    await db.addToHash(`user_updates`, login, JSON.stringify({ date: Date.now() }))
   }
 
   async getPublicRepos(login) {

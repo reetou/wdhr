@@ -16,12 +16,11 @@ const htmlWebpackOptions = {
 module.exports = {
   devtool: "false",
   mode: 'development',
-  entry: './src/index.js',
+  entry: './src/ThemeDisplayer.js',
   optimization: {
     minimizer: [new TerserPlugin()],
   },
   plugins: [
-    new MiniCssExtractPlugin(),
     // new ExtractTextPlugin({
     //   filename: 'style[hash].css'
     // }),
@@ -32,15 +31,6 @@ module.exports = {
     rules: [
       { test: /\.png$/, use: 'file-loader' },
       { test: /\.js$/, use: 'babel-loader' },
-      {
-        test: /\.css$/,
-        use: [
-          {
-            loader: MiniCssExtractPlugin.loader,
-          },
-          "css-loader"
-        ]
-      },
       {
         test: /\.less$/,
         use: ['style-loader', 'css-loader', AntdScssThemePlugin.themify({
@@ -80,8 +70,8 @@ module.exports = {
   },
   devServer: {
     contentBase: path.join(__dirname, 'dist_wb'),
-    compress: true,
-    port: 9000,
+    compress: false,
+    port: 9001,
     historyApiFallback: true,
     after: function(app, server) {
       // do fancy stuff

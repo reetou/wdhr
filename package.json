@@ -6,6 +6,7 @@
     "start": "webpack-dev-server",
     "build:parcel": "NODE_ENV=production parcel build index.html --no-minify",
     "build": "webpack",
+    "theme:start": "webpack-dev-server --config webpack.ant_theme.config.js",
     "production": "webpack --mode=production",
     "prod-build": "rm -rf dist_wb/* && rm /var/www/* && yarn production && cp dist_wb/* /var/www/",
     "build-prod": "rm -rf dist_wb/* && rm /var/www/* && yarn production && cp dist_wb/* /var/www/"

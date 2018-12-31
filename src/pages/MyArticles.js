@@ -9,7 +9,7 @@ import * as _ from 'lodash'
 
 
 const IconText = ({ type, text, rated, onClick }) => (
-  <span style={onClick ? { color: '#40a9ff' } : {}} onClick={onClick}>
+  <span className={onClick ? 'primary_icon' : ''} onClick={onClick}>
     <Icon type={type} style={{ marginRight: 8 }} />
     {text}
   </span>

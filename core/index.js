@@ -61,9 +61,8 @@ const start = function() {
     done(null, user);
   });
 
-  passport.deserializeUser(async function(obj, done) {
-    console.log(`Deserialized`)
-    await User.updatePublicRepos(obj._json.repos_url, obj.username)
+  passport.deserializeUser(function(obj, done) {
+    User.updatePublicRepos(obj._json.repos_url, obj.username)
     done(null, obj);
   });
 

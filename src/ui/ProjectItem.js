@@ -28,7 +28,7 @@ export default class ProjectItem extends React.Component {
   render() {
     const { app, auth, project, actions, item } = this.props
 
-    const stackItems = item.techs ? item.techs.map(i => app.TECHS[i].name).join(', ') : ''
+    const stackItems = item.techs && app.TECHS.length ? item.techs.map(i => app.TECHS[i].name).join(', ') : ''
     const stack = stackItems.length > 59 ? `${stackItems.substring(0, 59)}...` : stackItems
 
     return (
