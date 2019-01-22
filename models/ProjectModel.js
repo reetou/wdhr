@@ -35,7 +35,7 @@ class ProjectModel extends BaseModel {
         title: { type: 'string', minLength: 3, maxLength: 255 },
         login: { type: 'string', minLength: 3, maxLength: 255 },
         description: { type: 'string', minLength: 3, maxLength: 1000 },
-        avatar_url: { type: 'string', format: 'uri', minLength: 6 },
+        avatar_url: { type: ['string', 'null'], format: 'uri', minLength: 6 },
       }
     };
   }

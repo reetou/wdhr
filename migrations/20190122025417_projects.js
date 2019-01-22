@@ -3,9 +3,9 @@ exports.up = function(knex, Promise) {
   return knex.schema.createTable('projects', table => {
     table.timestamps(true, true)
     table.integer('project_id').unique()
-    table.integer('github_id').unique().references('github_id').inTable('users').onDelete('CASCADE')
+    table.integer('github_id').references('github_id').inTable('users').onDelete('CASCADE')
     table.string('project_name').notNullable().unique()
-    table.string('login').unique().references('login').inTable('users').onUpdate('CASCADE')
+    table.string('login').references('login').inTable('users').onUpdate('CASCADE')
     table.text('description').notNullable()
     table.string('title').notNullable()
     table.integer('estimates').defaultTo(0)

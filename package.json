@@ -11,7 +11,9 @@
     "prod-build": "rm -rf dist_wb/* && rm /var/www/* && yarn production && cp dist_wb/* /var/www/",
     "build-prod": "rm -rf dist_wb/* && rm /var/www/* && yarn production && cp dist_wb/* /var/www/",
     "migration": "knex migrate:make",
-    "migrate": "knex migrate:latest"
+    "migrate": "knex migrate:latest",
+    "rollback": "knex migrate:rollback",
+    "seed": "knex seed:run"
   },
   "dependencies": {
     "@babel/core": "^7.0.0-0",

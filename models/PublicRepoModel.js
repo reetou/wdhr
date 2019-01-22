@@ -8,11 +8,7 @@ class PublicRepoModel extends BaseModel {
   }
 
   static get idColumn() {
-    return 'repository_id'
-  }
-
-  $beforeUpdate() {
-    this.updated_at = new Date().toISOString();
+    return ['repository_id']
   }
 
   static get jsonSchema() {
