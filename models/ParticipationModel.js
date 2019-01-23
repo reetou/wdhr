@@ -21,7 +21,7 @@ class ParticipationModel extends BaseModel {
       required: [
         'github_id',
         'project_id',
-        'login',
+        'request_login',
         'position',
         'telegram',
         'request_status'
@@ -30,7 +30,7 @@ class ParticipationModel extends BaseModel {
       properties: {
         github_id: { type: 'integer' },
         project_id: { type: 'integer' },
-        login: { type: 'string', minLength: 3, maxLength: 255 },
+        request_login: { type: 'string', minLength: 3, maxLength: 255 },
         position: { type: 'string', minLength: 3, maxLength: 255 },
         comment: { type: 'string', minLength: 3, maxLength: 1000 },
         telegram: { type: 'string', minLength: 3, maxLength: 255 },

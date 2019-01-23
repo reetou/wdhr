@@ -1,5 +1,6 @@
 const BaseModel = require('./BaseModel')
 const { Model } = require('objection');
+const ProjectRatingModel = require('./ProjectRatingModel')
 
 // Person model.
 class ProjectModel extends BaseModel {
@@ -15,6 +16,19 @@ class ProjectModel extends BaseModel {
     this.updated_at = new Date().toISOString();
   }
 
+  static get relationMappings() {
+    return {
+      rates: {
+        relation: Model.HasManyRelation,
+        modelClass: ProjectRatingModel,
+        join: {
+          from: 'projects.project_id',
+          to: 'projects_rating.project_id'
+        }
+      },
+    };
+  }
+
   static get jsonSchema() {
     return {
       type: 'object',
@@ -24,7 +38,7 @@ class ProjectModel extends BaseModel {
         'project_name',
         'title',
         'description',
-        'login',
+        'owner',
         'avatar_url',
       ],
 
@@ -33,9 +47,11 @@ class ProjectModel extends BaseModel {
         github_id: { type: 'integer' },
         project_name: { type: 'string', minLength: 3, maxLength: 255 },
         title: { type: 'string', minLength: 3, maxLength: 255 },
-        login: { type: 'string', minLength: 3, maxLength: 255 },
+        owner: { type: 'string', minLength: 3, maxLength: 255 },
         description: { type: 'string', minLength: 3, maxLength: 1000 },
         avatar_url: { type: ['string', 'null'], format: 'uri', minLength: 6 },
+        repository_name: { type: ['string', 'null'], minLength: 3, maxLength: 255 },
+        repository_id: { type: ['integer', 'null'] }
       }
     };
   }
