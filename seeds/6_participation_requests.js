@@ -8,7 +8,7 @@ exports.seed = async function(knex, Promise) {
     {
       github_id: 40545200,
       project_id: 1,
-      login: 'akella',
+      request_login: 'akella',
       project_name: 'project1',
       position: 'Frontend',
       comment: 'Privet ya frontend mozhno k vam?',
@@ -18,27 +18,27 @@ exports.seed = async function(knex, Promise) {
     {
       github_id: 40545201,
       project_id: 1,
-      login: 'reetou',
+      request_login: 'reetou',
       project_name: 'project1',
       position: 'FullStack',
       comment: 'Privet ya fullstack vozmite please',
       telegram: 'zae',
-      request_status: 1
+      request_status: 2
     },
     {
       github_id: 40545201,
       project_id: 2,
-      login: 'reetou',
+      request_login: 'reetou',
       project_name: 'project2',
       position: 'Project Manager',
       comment: 'Pomogu vam razobratsya s karto4kami v trello',
       telegram: 'zae_pm',
-      request_status: 2
+      request_status: 0
     },
     {
       github_id: 40545200,
       project_id: 2,
-      login: 'akella',
+      request_login: 'akella',
       project_name: 'project2',
       position: 'Data Scientist',
       comment: 'Profiliruyu vashi pythonы',
