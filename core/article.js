@@ -17,12 +17,6 @@ class Article {
   
   constructor() {
     this.ALLOWED_EDIT_PROPS = ['title', 'content', 'is_public']
-    this.CREATE_PROPS = {
-      title: 'string',
-      content: 'string',
-      type: 'array',
-      is_public: 'boolean'
-    }
   }
 
   async get(cursor = 0, asc = true) {
