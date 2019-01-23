@@ -8,7 +8,7 @@ const sharp = require('sharp')
 const AWS = require('aws-sdk')
 const _ = require('lodash')
 
-console.log(`URL ENDPOINT`, config.S3.URL)
+// console.log(`URL ENDPOINT`, config.S3.URL)
 
 let s3 = new OSAPI_S3.Connection({
   endPoint: config.S3.URL,
