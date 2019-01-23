@@ -7,6 +7,12 @@ const _ = require('lodash')
 const User = require('./user')
 const logError = require('debug')('projects:error')
 const cheerio = require('cheerio')
+const UserModel = require('../models/UserModel')
+const ProjectModel = require('../models/ProjectModel')
+const ParticipationModel = require('../models/ParticipationModel')
+const ProjectRatingModel = require('../models/ProjectRatingModel')
+const TechModel = require('../models/TechModel')
+const { transaction } = require('objection')
 const {
   performance
 } = require('perf_hooks');
@@ -38,17 +44,7 @@ class Projects {
       'Реквестер не может спонсировать проект',
       'По личным причинам'
     ]
-    this.CREATE_PROPS = {
-      name: 'string',
-      description: 'string',
-      title: 'string',
-      estimates: 'number',
-      techs: 'array',
-      is_public: 'boolean',
-      repo: 'number',
-      budget: 'number'
-    }
-    this.ALLOWED_EDIT_PROPS = ['is_public', 'name', 'description', 'title', 'budget']
+    this.ALLOWED_EDIT_PROPS = ['is_public', 'project_name', 'description', 'title']
     const mb = 1000000
     this.PROJECT_DEFAULT_SIZE = {
       USER: 15 * mb,
@@ -63,17 +59,9 @@ class Projects {
   }
 
   async getTechs() {
-    let techs = await db.findAllInHash(PROJECTS_TECHS())
-    if (!techs) return []
-    return _.map(techs, JSON.parse).filter(t => t.active)
-  }
-
-  async isRequestedParticipation(login, projectId) {
-    return Boolean(await db.findInHash(USER_PARTICIPATION_REQUESTS(login), projectId))
-  }
-
-  async isAcceptedParticipator(login, projectId) {
-    return Boolean(await db.findInHash(PROJECT_ACCEPTED_PARTICIPATIONS(projectId), projectId))
+    return await TechModel
+      .query()
+      .select(['tech_name', 'tech_id'])
   }
 
   async getStaticFolderSize(prefix) {
@@ -106,8 +94,9 @@ class Projects {
     return await removeFilesByPrefix(prefix)
   }
 
-  async updateAvatar(id, file, project) {
-    const projectName = project.name
+  async updateAvatar(project_id, file) {
+    const project = await this.getById(project_id, true)
+    const projectName = project.project_name
     const s3_bucket_url = `${S3.URL}/${S3.BUCKET}`
     let ext = file.mimetype.slice(-4)
     console.log(`ext? ${ext}, mime? ${file.mimetype}`)
@@ -118,7 +107,7 @@ class Projects {
       return false
     }
     if (project.avatar_url) await remove(project.avatar_url)
-    const name = `projects_avatars/${id}_${projectName}_${Date.now()}.${ext}`
+    const name = `projects_avatars/${project_id}_${projectName}_${Date.now()}.${ext}`
     const avatar_url = `${s3_bucket_url}/${name}`
     try {
       const buffer = await makePreview(file.buffer, 150)
@@ -128,7 +117,21 @@ class Projects {
         acl: 'public-read'
       }, buffer)
       project.avatar_url = avatar_url
-      await this.save(project)
+      let trx
+      try {
+        trx = await transaction.start(ProjectModel.knex())
+        await ProjectModel
+          .query(trx)
+          .where({ project_id })
+          .patch({
+            avatar_url: project.avatar_url
+          })
+        await trx.commit()
+      } catch (e) {
+        console.log(`Error at update avatar url in project ${project_id}`)
+        await trx.rollback()
+        throw e
+      }
       return {
         avatar_url
       }
@@ -213,288 +216,200 @@ class Projects {
     return html
   }
 
-  async get(cursor = 0, login, asc = true) {
-    const data = await db.scanHash(PROJECTS(), cursor)
-    const updatedCursor = data[0]
-    let projects = data[1].filter(v => typeof JSON.parse(v) === 'object')
-    projects = await Promise.all(_.map(projects, async p => {
-      const project = JSON.parse(p)
+  async get(owner, page = 0) {
+    const projects = await ProjectModel
+      .query()
+      .select('*')
+      .where({ owner })
+      .andWhere({ is_public: true })
+      .page(page, 100)
+    if (projects.total) {
+      await ProjectModel.loadRelated(projects.results, 'rates')
       return {
-        ...project,
-        ...await this.getAdditionalProjectInfo(project, login)
-      }
-    }))
-    projects = _.sortBy(projects, 'date')
-    if (!asc) projects = projects.reverse()
-    return { projects: projects.filter(p => p.is_public), cursor: updatedCursor }
-  }
-
-  async getAdditionalProjectInfo(project, login) {
-    const owner = project.author === login
-    const is_participator = await this.isAcceptedParticipator(login, project.id)
-    const repo = project.repo ? await User.getPublicRepoById(project.author, project.repo) : null
-    return {
-      owner,
-      is_participator,
-      is_requested_participation: await this.isRequestedParticipation(login, project.id),
-      rating: await this.getRating(project.id),
-      ...owner ? {
-        participation_requests: await this.getParticipationRequests(project.id)
-      } : {},
-      members_count: await this.getProjectMembersCount(project.id),
-      repo,
-      members: await this.getAllParticipants(project.id, project.author)
-    }
-  }
-
-  async getProjectMembersCount(projectId) {
-    const participants = await db.getHashLen(PROJECT_ACCEPTED_PARTICIPATIONS(projectId))
-    // +1 потому что хозяин проекта не добавлен в хеш с партисипантами
-    return participants + 1
-  }
-
-  async getUserProjects(login) {
-    let projects = await db.findAllInHash(USER_PROJECTS(login))
-    if (!projects) return []
-    return await Promise.all(_.map(projects, async p => {
-      const project = JSON.parse(p)
-      return {
-        ...project,
-        ...await this.getAdditionalProjectInfo(project, login)
-      }
-    }))
-  }
-
-  async uprate(id, login) {
-    if (!id || !login) return
-    const project = await this.getById(id)
-    if (!project) {
-      console.log(`At uprate did not find project ${id}`)
-      return false
-    }
-    await db.addToHash(PROJECT_RATING(id), login, JSON.stringify({
-      date: Date.now(),
-      login,
-    }))
-    await db.addToHash(USER_RATED_PROJECTS(login), id, JSON.stringify({ date: Date.now(), id }))
-    await pusher.projectRate(project.author, { login, name: project.name })
-    return await db.getHashLen(PROJECT_RATING(id))
-  }
-
-  async downrate(id, login) {
-    if (!id || !login) return
-    const project = await this.getById(id)
-    if (!project) {
-      console.log(`At uprate did not find project ${id}`)
-      return false
-    }
-    await db.removeFromHash(PROJECT_RATING(id), login)
-    await db.removeFromHash(USER_RATED_PROJECTS(login), id)
-    await pusher.projectRateRevert(project.author, { login, name: project.name })
-    return await db.getHashLen(PROJECT_RATING(id))
-  }
-
-  async getRating(id) {
-    return await db.getHashLen(PROJECT_RATING(id))
-  }
-
-  async getById(id, login, checkOwner = false, checkPrivacy = true, admin = false, withAdditionals = true) {
-    let project = await db.findInHash(PROJECTS(), id)
-    if (!project && !login) return false
-    if (!project) project = await db.findInHash(USER_PROJECTS(login), id)
-    if (!project) return false
-    project = JSON.parse(project)
-    if (checkOwner && project.author !== login) {
-      console.log(`Checking owner and its not it: ${project.author} !== ${login}`)
-      return false
-    }
-    if (checkPrivacy && !project.is_public && project.author !== login && !admin) {
-      console.log(`Project is private and returning false because its not an author and not an admin`)
-      return false
-    }
-    if (withAdditionals) {
-      const additionals = await this.getAdditionalProjectInfo(project, login)
-      project = {
-        ...project,
-        ...additionals
+        ...projects,
+        results: await Promise.all(projects.results.map(async p => await this.getAdditionalProjectInfo(p)))
       }
     }
-    // Add unsafe props
+    return projects
+  }
+
+  async getAdditionalProjectInfo(source, options) {
+    if (!_.isObject(options)) options = {}
+    const project = _.cloneDeep(source)
+    project.rating = project.rates.length
+    const members = await ParticipationModel
+      .query()
+      .select(['telegram', 'comment', 'position', 'telegram', 'request_login'])
+      .where({ request_status: 2 })
+      .andWhere({ project_id: project.project_id })
+    const participation_requests = await ParticipationModel
+      .query()
+      .select(['telegram', 'comment', 'position', 'telegram', 'request_login'])
+      .where({ request_status: 0 })
+      .andWhere({ project_id: project.project_id })
+    if (options.requests) {
+      project.participation_requests = participation_requests
+    }
+    if (options.members) {
+      project.members = members
+    }
+    project.members_count = members.length
     return project
   }
 
-  async getParticipationRequests(id) {
-    let requests = await db.findAllInHash(PROJECT_PARTICIPATION_REQUESTS(id))
-    requests = await Promise.all(_.map(requests, async req => {
-      const request = JSON.parse(req)
-      const user = await User.getSafeUserData(request.login)
-      return {
-        ...request,
-        ...user ? user : {}
-      }
-    }))
-    return requests
+  async getUserProjects(owner, withPrivate) {
+    const projects = await ProjectModel
+      .query()
+      .select('*')
+      .where(builder => {
+        if (withPrivate) return builder.where({ owner })
+        return builder.where({ owner }).andWhere({ is_public: true })
+      })
+    await ProjectModel.loadRelated(projects, 'rates')
+    return await Promise.all(projects.map(async p => await this.getAdditionalProjectInfo(p, { members: true, requests: true })))
   }
 
-  async requestParticipation(id, login, comment, position, telegram) {
+  async rate(data, up = true) {
+    if (up) {
+      return await ProjectRatingModel
+        .query()
+        .insert(data)
+    }
+    return await ProjectRatingModel
+      .query()
+      .where({ project_id: data.project_id })
+      .andWhere({ login: data.login })
+      .del()
+      .returning('*')
+      .first()
+  }
+
+  async getById(project_id, checkPrivate = false) {
+    let project = await ProjectModel
+      .query()
+      .where(builder => {
+        if (checkPrivate) return builder.where({ project_id })
+        return builder.where({ project_id }).andWhere({ is_public: true })
+      })
+      .first()
+    await ProjectModel.loadRelated([project], 'rates')
+    project = await this.getAdditionalProjectInfo(project)
+    return project
+  }
+
+  async requestParticipation(github_id, project_id, project_name, request_login, comment, position, telegram) {
+    const request = await ParticipationModel.query().where({ project_id }).andWhere({ request_login })
+    if (request) throw new Error(`Already requested`)
+    const result = await ParticipationModel
+      .query()
+      .insert({
+        project_id,
+        project_name,
+        request_login,
+        comment,
+        position,
+        telegram,
+        github_id,
+        request_status: 0
+      })
+    return result
+  }
+
+  async revokeParticipation(project_id, request_login) {
+    return await ParticipationModel
+      .query()
+      .where({ project_id })
+      .andWhere({ request_login })
+      .del()
+  }
+
+  async acceptParticipator(project_id, request_login) {
+    let trx
     try {
+      trx = await transaction.start(ParticipationModel.knex())
+      const result = await ParticipationModel
+        .query(trx)
+        .where({ project_id })
+        .andWhere({ request_login })
+        .update({ request_status: 2 })
+        .returning('*')
+        .first()
+      await trx.commit()
+      await pusher.participationAccept(request_login, {
+        name: result.project_name,
+        request_login,
+        date: Date.now(),
+        position: result.position
+      })
+      return result
+    } catch (e) {
+      console.log(`Error at accept participation`)
+      await trx.rollback()
+      throw e
+    }
+  }
+
+  async denyParticipator(project_id, request_login) {
+    let trx
+    try {
+      trx = await transaction.start(ParticipationModel.knex())
+      const result = await ParticipationModel
+        .query(trx)
+        .where({ project_id })
+        .andWhere({ request_login })
+        .update({ request_status: 1 })
+        .returning('*')
+        .first()
+      await trx.commit()
       const data = {
-        login, position, comment, contacts: { telegram }, date: Date.now()
+        request_login,
+        name: result.project_name,
+        date: Date.now(),
       }
-      const project = await this.getById(id, login, false)
-      if (!project) return false
-      await db.addToHash(USER_PARTICIPATION_REQUESTS(login), id, JSON.stringify(data))
-      await db.addToHash(PROJECT_PARTICIPATION_REQUESTS(id), login, JSON.stringify(data))
-      await pusher.projectParticipationRequest(project.author, { ...data, name: project.name })
-      return true
+      await pusher.participationReject(request_login, data)
+      return result
     } catch (e) {
-      console.log(`Error at request participation for project ${id} login ${login}`, e)
-      return false
+      console.log(`Error at accept participation`)
+      await trx.rollback()
+      throw e
     }
   }
 
-  async getParticipationRequest(id, requesterLogin) {
-    let requester = await db.findInHash(PROJECT_PARTICIPATION_REQUESTS(id), requesterLogin)
-    if (!requester) return false
-    return JSON.parse(requester)
-  }
-
-  async revokeParticipation(id, login) {
-    try {
-      await db.removeFromHash(USER_PARTICIPATION_REQUESTS(login), id)
-      await db.removeFromHash(PROJECT_PARTICIPATION_REQUESTS(id), login)
-      return true
-    } catch (e) {
-      console.log(`Error at REVOKE request participation for project ${id} login ${login}`, e)
-      return false
-    }
-  }
-
-  async acceptParticipator(id, login, title) {
-    const proj = await this.getById(id, null, false, false, false, false)
-    const owner = proj.author
-    if (owner === login) {
-      console.log(`Cannot assign participation on project's author at project id: ${id}, login: ${login}`)
-      logError(`Cannot assign participation on project's author at project id: ${id}, login: ${login}`)
-      return false
-    }
-    const request = await this.getParticipationRequest(id, login)
-    await this.revokeParticipation(id, login)
-    const data = {
-      login,
-      date: Date.now(),
-      title: title || '',
-      position: request.position
-    }
-    await db.addToHash(PROJECT_ACCEPTED_PARTICIPATIONS(id), login, JSON.stringify(data))
-    await pusher.participationAccept(login, {
-      name: proj.name,
-      login,
-      date: Date.now(),
-      title: title || '',
-      position: request.position
-    })
-    return true
-  }
-
-  async getParticipant(id, login) {
-    let participator = await db.findInHash(PROJECT_ACCEPTED_PARTICIPATIONS(id), login)
-    if (!participator) return false
-    return JSON.parse(participator)
-  }
-
-  async getAllParticipants(id, author) {
-    let members = await db.findAllInHash(PROJECT_ACCEPTED_PARTICIPATIONS(id))
-    const owner = await User.getSafeUserData(author)
-    owner.project_owner = true
-    if (!members) return [owner]
-    const all = await Promise.all(_.map(members, JSON.parse).map(m => m.login).map(async l => {
-      const user = await User.getSafeUserData(l)
-      const participantData = await this.getParticipant(id, l)
-      return {
-        ...user,
-        position: participantData.position,
-        joined: participantData.date
-      }
-    }))
-
-    return all.concat(owner)
-  }
-
-  async denyParticipator(id, login, reason) {
-    const owner = (await this.getById(id, null, false, false, false, false)).author
-    if (owner === login) {
-      logError(`Cannot deny participation on project's author at project id: ${id}, login: ${login}`)
-      return false
-    }
-    await this.revokeParticipation(id, login)
-    const data = {
-      login,
-      date: Date.now(),
-      reason: reason || ''
-    }
-    await db.addToHash(PROJECT_REJECTED_PARTICIPATIONS(id), login, JSON.stringify(data))
-    await pusher.participationReject(login, data)
-    return true
-  }
-
-  async edit(id, login, data) {
-    let project = await this.getById(id, login, true, true, false, false)
+  async edit(project_id, data) {
+    let project = await this.getById(project_id, true)
     const oldEdit = JSON.stringify(project)
-    if (!project) {
-      console.log(`No project found`)
-      return false
-    }
+    if (!project) throw new Error(`No project found by id ${project_id}`)
     _.forEach(data, (value, key) => {
       if (this.ALLOWED_EDIT_PROPS.includes(key)) project[key] = value
     })
-    const newEdit = JSON.stringify(project)
-    if (oldEdit === newEdit) {
-      console.log(`Project not edited, login: ${login}, id: ${id}`)
+    let newEdit = JSON.stringify(project)
+    if (oldEdit === newEdit) throw new Error(`Project not modified`)
+    let trx
+    try {
+      trx = await transaction.start(ProjectModel.knex())
+      const fields = {}
+      const edited = JSON.parse(newEdit)
+      this.ALLOWED_EDIT_PROPS.forEach(field => {
+        fields[field] = edited[field]
+      })
+      const result = await ProjectModel
+        .query(trx)
+        .where({ project_id })
+        .patchAndFetchById(project_id, fields)
+      await trx.commit()
+      return result
+    } catch (e) {
+      throw e
     }
-    const result = await this.save(project)
-    if (!result) {
-      console.log(`Cannot save`)
-      return false
-    }
-    const editedProject = await this.getById(id, login, true)
-    return editedProject
   }
 
-  async save(project) {
-    const start = performance.now()
-    const now = Date.now()
-    if (!project.id || !project.author) return false
-    delete project.owner
-    delete project.is_participator
-    delete project.is_requested_participation
-    delete project.participation_requests
-    delete project.members
-    if (!project.avatar_url) project.avatar_url = ''
-    await db.addToHash(USER_PROJECTS(project.author), project.id, JSON.stringify(project))
-    if (project.is_public) {
-      await db.addToHash(PROJECTS(), project.id, JSON.stringify(project))
-    } else {
-      await db.removeFromHash(PROJECTS(), project.id)
-    }
-    await db.addToHash(PROJECT_EDITS(project.id), `id_${project.id}_${now}`, JSON.stringify({ date: now, project }))
-    const end = performance.now()
-    console.log(`Performed save in ${end - start} ms`)
-    return project
-  }
-
-  async remove(id, login) {
-    let project = await db.findInHash(USER_PROJECTS(login), id)
-    if (!project) return false
-    project = JSON.parse(project)
-    if (project.author !== login) return false
-    const allRatedUsers = await db.findAllInHash(PROJECT_RATING(id))
-    await Promise.all(_.map(allRatedUsers, async (value, login) => {
-      await db.removeFromHash(USER_RATED_PROJECTS(login), id)
-    }))
-    await db.removeFromHash(PROJECTS(), id)
-    await db.removeFromHash(USER_PROJECTS(login), id)
-    return true
+  async remove(project_id) {
+    return await ProjectModel
+      .query()
+      .where({ project_id })
+      .del()
+      .returning('*')
+      .del()
   }
 
   async getProjectCountLimit(login) {
@@ -513,30 +428,11 @@ class Projects {
     return count >= countLimit
   }
 
-  async create(name, description, title, estimates, techs, author, budget, is_public, repo) {
-    const count = await db.getListLen(PROJECTS(), 'create')
-    if (await this.isAboveProjectCountLimit(author)) throw new Error('Достигнут лимит проектов')
-    const id = Number(count) + 1
-    const data = {
-      id,
-      name,
-      description,
-      title,
-      estimates,
-      techs,
-      avatar_url: '',
-      created: Date.now(),
-      author,
-      budget,
-      is_public,
-      repo: repo > 0 ? repo : ''
-    }
-    await db.addToHash(USER_PROJECTS(author), id, JSON.stringify(data))
-    if (data.is_public) {
-      await db.addToHash(PROJECTS(), id, JSON.stringify(data))
-    }
-    await db.addToList(PROJECTS(), `create`, JSON.stringify(data))
-    return await this.getById(id, author)
+  async create(data) {
+    if (await this.isAboveProjectCountLimit(data.owner)) throw new Error('Достигнут лимит проектов')
+    return await ProjectModel
+      .query(trx)
+      .insert(data)
   }
 
 }
