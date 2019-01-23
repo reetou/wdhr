@@ -14,7 +14,7 @@ router.get('/', asyncFn(async (req, res) => {
   res.send(articles)
 }))
 
-router.post('/', checkAuth(), checkForFields(Article.CREATE_PROPS), asyncFn(async (req, res) => {
+router.post('/', checkAuth(), asyncFn(async (req, res) => {
   const data = req.body
   const result = await Article.create(data.title, data.content, data.type, req.user.username, data.is_public)
   if (!result) res.status(500).send({ err: `Не могу создать статью` })
