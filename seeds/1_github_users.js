@@ -28,6 +28,14 @@ exports.seed = async function(knex, Promise) {
       github_update_date: "2018-12-05T17:54:39Z",
       avatar_url: 'https://avatars2.githubusercontent.com/u/40545201?v=4',
       github_url: 'https://github.com/reetou',
+    },
+    {
+      github_id: 40545209,
+      login: 'testuser',
+      github_register_date: "2018-06-24T17:18:17Z",
+      github_update_date: "2018-12-05T17:54:39Z",
+      avatar_url: 'https://avatars2.githubusercontent.com/u/40545201?v=4',
+      github_url: 'https://github.com/testuser',
     }
   ]
 

@@ -296,9 +296,30 @@ class Projects {
     return project
   }
 
-  async requestParticipation(github_id, project_id, project_name, request_login, comment, position, telegram) {
-    const request = await ParticipationModel.query().where({ project_id }).andWhere({ request_login })
-    if (request) throw new Error(`Already requested`)
+  /**
+   * Реквест на участие в проекте
+   * @param data {Object} Объект с данными
+   * @param data.github_id {number}
+   * @param data.project_id {number}
+   * @param data.project_name {string}
+   * @param data.request_login {string}
+   * @param data.comment {string}
+   * @param data.position {string}
+   * @param data.telegram {string}
+   * @returns {Promise<Object>}
+   */
+  async requestParticipation(data) {
+    const {
+      project_id,
+      project_name,
+      request_login,
+      comment,
+      position,
+      telegram,
+      github_id,
+    } = data
+    const request = await ParticipationModel.query().where({ project_id }).andWhere({ request_login }).first()
+    if (request) throw new Error(`Already requested user ${request_login} for project ${project_id}`)
     const result = await ParticipationModel
       .query()
       .insert({
@@ -320,6 +341,8 @@ class Projects {
       .where({ project_id })
       .andWhere({ request_login })
       .del()
+      .returning('*')
+      .first()
   }
 
   async acceptParticipator(project_id, request_login) {
@@ -330,7 +353,7 @@ class Projects {
         .query(trx)
         .where({ project_id })
         .andWhere({ request_login })
-        .update({ request_status: 2 })
+        .patch({ request_status: 2 })
         .returning('*')
         .first()
       await trx.commit()
@@ -356,7 +379,7 @@ class Projects {
         .query(trx)
         .where({ project_id })
         .andWhere({ request_login })
-        .update({ request_status: 1 })
+        .patch({ request_status: 1 })
         .returning('*')
         .first()
       await trx.commit()
@@ -406,9 +429,9 @@ class Projects {
     return await ProjectModel
       .query()
       .where({ project_id })
-      .del()
       .returning('*')
       .del()
+      .first()
   }
 
   async getProjectCountLimit(login) {
