@@ -4,11 +4,34 @@ import * as _ from 'lodash'
 import chai from 'chai'
 import * as assert from 'assert'
 import ProjectModel from '../models/ProjectModel'
+import ProjectRatingModel from '../models/ProjectRatingModel'
+
+test.before('Revert changes in projects and remove rates', async t => {
+  t.context.login = 'reetou'
+  t.context.project_id = 1
+  t.context.github_id = 40545201
+  t.context.project_name = 'project1'
+  const { project_id, project_name } = t.context
+  await ProjectModel
+    .query()
+    .where({ project_id })
+    .patch({
+      project_name,
+      description: 'some description',
+      title: 'some title',
+      is_public: true,
+    })
+  await ProjectRatingModel
+    .query()
+    .where({ project_id })
+    .del()
+})
 
 test('[Projects.get()] Should get projects by default page', async t => {
   const projects = await Projects.get('trplfr')
   chai.assert.isObject(projects)
   chai.assert.isArray(projects.results)
+  t.log(`Projects by trplfr`, projects)
   t.true(projects.total > 0)
   t.log(`Projects total: ${projects.total}`)
   projects.results.forEach(p => {
@@ -71,14 +94,47 @@ test('[Projects.getUserProjects()] should have only public projects', async t =>
       chai.assert.hasAllKeys(r, ['comment', 'position', 'request_login', 'telegram'])
     }
   })
+  t.pass()
+})
+
+test('[Projects.rate()] should uprate project', async t => {
+  const { project_id, github_id, login, project_name } = t.context
+  const result = await Projects.rate({
+    project_id,
+    github_id,
+    login,
+    project_name
+  })
+  t.log(`Rate result`, result)
+  chai.assert.isObject(result)
+  const rating = await ProjectRatingModel.query().where({ project_id })
+  t.log(`Project rating`, rating.length)
+  t.is(rating.length, 1)
+})
+
+test('[Projects.rate()] should downrate project', async t => {
+  const { project_id, github_id, login, project_name } = t.context
+  const result = await Projects.rate({
+    project_id,
+    github_id,
+    login,
+    project_name
+  }, false)
+  t.log(`Rate result`, result)
+  chai.assert.isObject(result)
+  const rating = await ProjectRatingModel.query().where({ project_id })
+  t.log(`Project rating`, rating.length)
+  t.is(rating.length, 0)
 })
 
 test('[Projects.edit()] should edit project successfully', async t => {
+  const { project_id } = t.context
   const project = await ProjectModel
     .query()
-    .select('*')
+    .where({ project_id })
     .first()
   const fields = {}
+  t.log(`Got project`, project)
   Projects.ALLOWED_EDIT_PROPS.forEach(field => {
     if (_.isBoolean(project[field])) {
       const newVal = !project[field]
@@ -100,5 +156,3 @@ test('[Projects.edit()] should edit project successfully', async t => {
     t.is(editedProject[field], value, `${field} should be equal after edit`)
   })
 })
-
-test.serial.todo(`Check if other relations are edited too`)

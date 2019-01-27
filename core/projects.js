@@ -219,7 +219,6 @@ class Projects {
   async get(owner, page = 0) {
     const projects = await ProjectModel
       .query()
-      .select('*')
       .where({ owner })
       .andWhere({ is_public: true })
       .page(page, 100)
