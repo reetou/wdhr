@@ -22,7 +22,11 @@ class User {
 
   async get(login) {
     if (!login) return false
-    const user = await UserModel.query().where({ login }).first()
+    const user = await UserModel
+      .query()
+      .select(['login', 'avatar_url', 'github_url', 'github_register_date', 'github_update_date', 'github_id'])
+      .where({ login })
+      .first()
     if (!user) return false
     return user
   }
@@ -31,14 +35,14 @@ class User {
     return await ProjectRatingModel.query().where({ login }).map(p => p.project_id)
   }
 
-  async getSafeUserData(login, withRatedProjects = false, withRatedArticles = false) {
+  async getSafeUserData(login) {
     const user = await this.get(login)
     if (!user) return false
     user.rated = await this.getRatedProjects(login)
-    delete user.github_id
     user.project_ownership_count = await this.getUserProjectsCount(login)
-    user.public_repos = await this.getPublicRepos(login)
+    user.public_repos = await this.getPublicRepos(user.github_id)
     user.public_repos_names = user.public_repos.map(r => r.full_name)
+    delete user.github_id
     return user
   }
 
@@ -91,7 +95,7 @@ class User {
       }, { insertMissing: true })
       return updated
     }))
-    const currentRepos = await this.getPublicRepos(login)
+    const currentRepos = await this.getAllRepos(r.owner.id)
     const updatedReposNames = updatedRepos.map(r => r.repository_id)
     const currentReposNames = currentRepos.map(r => r.repository_id)
     const reposNamesToDelete = currentReposNames.filter(v => !updatedReposNames.includes(v))
@@ -100,20 +104,20 @@ class User {
 
   /**
    * Возвращает все репозитории пользователя по логину
-   * @param login {string}
+   * @param github_id {number}
    * @returns {Promise<[Object]>}
    */
-  async getAllRepos(login) {
-    return await PublicRepoModel.query().select(['repository_id', 'full_name', 'language']).where({ login })
+  async getAllRepos(github_id) {
+    return await PublicRepoModel.query().select(['repository_id', 'full_name', 'language']).where({ github_id })
   }
 
   /**
    * Возвращает все публичные репозитории-источники пользователя по логину
-   * @param login {string}
+   * @param github_id {number}
    * @returns {Promise<[Object]>}
    */
-  async getPublicRepos(login) {
-    return await PublicRepoModel.query().select(['repository_id', 'full_name', 'language']).where({ login }).andWhere({ private: false }).andWhere({ fork: false })
+  async getPublicRepos(github_id) {
+    return await PublicRepoModel.query().select(['repository_id', 'full_name', 'language']).where({ github_id }).andWhere({ private: false }).andWhere({ fork: false })
   }
 
   /**
