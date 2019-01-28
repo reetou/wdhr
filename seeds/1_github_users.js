@@ -22,7 +22,7 @@ exports.seed = async function(knex, Promise) {
       github_update_date: "2018-12-05T17:54:39Z"
     },
     {
-      github_id: 40545201,
+      github_id: 18047528,
       login: 'reetou',
       github_register_date: "2018-06-24T17:18:17Z",
       github_update_date: "2018-12-05T17:54:39Z",

@@ -16,7 +16,7 @@ exports.seed = async function(knex, Promise) {
       request_status: 0
     },
     {
-      github_id: 40545201,
+      github_id: 18047528,
       project_id: 1,
       request_login: 'reetou',
       project_name: 'project1',
@@ -26,7 +26,7 @@ exports.seed = async function(knex, Promise) {
       request_status: 2
     },
     {
-      github_id: 40545201,
+      github_id: 18047528,
       project_id: 2,
       request_login: 'reetou',
       project_name: 'project2',

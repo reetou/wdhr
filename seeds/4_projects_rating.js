@@ -14,13 +14,13 @@ exports.seed = async function(knex, Promise) {
     {
       project_id: 1,
       project_name: 'project1',
-      github_id: 40545201,
+      github_id: 18047528,
       login: 'reetou',
     },
     {
       project_id: 2,
       project_name: 'project2',
-      github_id: 40545201,
+      github_id: 18047528,
       login: 'reetou',
     }
   ]
