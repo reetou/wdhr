@@ -106,7 +106,7 @@
       "dist/*",
       "node_modules/*"
     ],
-    "delay": "2500"
+    "delay": "300"
   },
   "ava": {
     "failWithoutAssertions": true
