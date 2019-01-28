@@ -33,7 +33,6 @@ class ProjectModel extends BaseModel {
     return {
       type: 'object',
       required: [
-        'project_id',
         'github_id',
         'project_name',
         'title',
