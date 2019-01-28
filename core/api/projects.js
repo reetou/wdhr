@@ -119,7 +119,9 @@ router.get('/mocks/request/:id', asyncFn(async (req, res) => {
 router.post('/rate', checkAuth(), checkForFields({ project_id: 'number' }), asyncFn(async (req, res) => {
   const updatedRating = await Projects.rate({
     project_id: req.body.project_id,
+    project_name: req.body.project_name,
     login: req.user.username,
+    github_id: req.user._json.id,
   })
   res.send({ rating: updatedRating })
 }))

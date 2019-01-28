@@ -476,13 +476,14 @@ export default class ProjectStore {
   }
 
   @action.bound
-  rate(id, down = false) {
+  rate(id, project_name, down = false) {
     this.loading = true
     const obs = Rx.Observable.fromPromise(this.app.axios({
       url: `${this.app.API_HOST}/api/projects/rate`,
       method: down ? 'DELETE' : 'POST',
       data: {
-        project_id: Number(id)
+        project_id: Number(id),
+        project_name
       },
     }))
       .finally(() => {
@@ -495,13 +496,9 @@ export default class ProjectStore {
           message.error(down ? 'Не удалось отменить рейт' : 'Не удалось рейтануть проект')
         },
         () => {
-          this.projects = this.projects.map(p => {
-            if (Number(p.id) === Number(id)) {
-              if (down && p.rating > 0) p.rating -= 1
-              if (!down) p.rating += 1
-            }
-            return p
-          })
+          const project = this.projects.find(p => p.project_id === id)
+          if (down && project.rating > 0) project.rating -= 1
+          if (!down) project.rating += 1
           if (down) {
             const index = this.auth.user.rated.indexOf(Number(id))
             this.auth.user.rated.splice(index, 1)
