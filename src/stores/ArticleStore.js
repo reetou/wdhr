@@ -125,7 +125,7 @@ export default class ArticleStore {
     }
     if (!this.hasMore) this.articles = []
     const obs = Rx.Observable.fromPromise(this.app.axios({
-      url: `${this.app.API_HOST}/api/articles?cursor=${this.cursor}`,
+      url: `${this.app.API_HOST}/api/articles?page=${this.cursor}`,
       method: 'GET',
     }))
       .finally(() => {
@@ -136,7 +136,7 @@ export default class ArticleStore {
           console.log(`RES AT LOAD ARTICLES`, res)
           this.articles = this.articles.concat(res.data.articles)
           if (res.data.cursor) {
-            this.cursor = res.data.cursor
+            this.cursor = this.cursor + 1
             this.hasMore = Boolean(Number(res.data.cursor))
           }
         },

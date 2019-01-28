@@ -22,7 +22,7 @@ export default class ProjectItem extends React.Component {
 
   goToProject = project => {
     this.props.project.currentProject = project
-    this.props.history.push(`/projects/${project.id}`)
+    this.props.history.push(`/projects/${project.project_id}`)
   }
 
   render() {
@@ -39,8 +39,8 @@ export default class ProjectItem extends React.Component {
         <List.Item.Meta
           avatar={<Avatar src={item.avatar_url || 'https://i.imgur.com/1J24uLB.png'} />}
           title={<React.Fragment>
-            { item.repo && <Icon onClick={() => this.goToProject(item)} style={{ marginRight: 5, cursor: 'pointer' }} type={'github'} /> }
-            <a onClick={() => this.goToProject(item)}>{item.name}</a>
+            { item.repository_id && <Icon onClick={() => this.goToProject(item)} style={{ marginRight: 5, cursor: 'pointer' }} type={'github'} /> }
+            <a onClick={() => this.goToProject(item)}>{item.project_name}</a>
           </React.Fragment>}
           description={stack}
         />

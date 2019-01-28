@@ -58,8 +58,8 @@ export default class AllProjects extends React.Component {
                   inactiveColor
                   type="like-o"
                   text={item.rating}
-                  rated={auth.user.rated.includes(Number(item.id))}
-                  onClick={() => project.rate(Number(item.id), auth.user.rated.includes(Number(item.id)))}
+                  rated={auth.user.rated.includes(Number(item.project_id))}
+                  onClick={() => project.rate(Number(item.project_id), auth.user.rated.includes(Number(item.project_id)))}
                 />,
                 <IconText
                   type="team"

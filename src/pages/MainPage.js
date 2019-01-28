@@ -47,7 +47,6 @@ class CustomRedirecter extends React.Component {
     }
     if (auth && !project.userProjects.length) {
       await this.props.project.loadUserProjects()
-      await this.props.article.loadUserArticles()
     }
   }
 

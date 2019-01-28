@@ -53,7 +53,7 @@ class CreateProjectForm extends React.Component {
     return (
       <Form onSubmit={this.submit}>
         <FormItem>
-          {getFieldDecorator('name', {
+          {getFieldDecorator('project_name', {
             initialValue: '',
             rules: [
               { required: true, message: 'Название обязательно' },
@@ -104,7 +104,7 @@ class CreateProjectForm extends React.Component {
             >
               {
                 app.TECHS
-                  .map(i => <Option key={i.id} value={i.id}>{i.name}</Option>)
+                  .map(i => <Option key={i.tech_id} value={i.tech_id}>{i.tech_name}</Option>)
               }
             </Select>
           )}
@@ -113,7 +113,7 @@ class CreateProjectForm extends React.Component {
           auth.user.public_repos ?
             <FormItem>
               <p style={{ margin: 0 }}>Гитхаб репо</p>
-              {getFieldDecorator('repo', {
+              {getFieldDecorator('repository_id', {
                 initialValue: '',
                 rules: [
                   { required: true, message: 'Уточни, есть ли проект для репо ' },
@@ -129,33 +129,12 @@ class CreateProjectForm extends React.Component {
                   <Option value={0}>Нет</Option>
                   {
                     auth.user.public_repos
-                      .map((i, index) => <Option value={i.id} key={index}>{i.name}</Option>)
+                      .map((i, index) => <Option value={i.repository_id} key={index}>{i.full_name}</Option>)
                   }
                 </Select>
               )}
             </FormItem> : null
         }
-        <FormItem>
-          <div>Бюджет</div>
-          {getFieldDecorator('budget', {
-            initialValue: 0,
-            rules: [
-              { validator: (rule, value, cb) => {
-                  const valid = Number(value) >= 0 && Number(value) <= 3000
-                  console.log('value', value)
-                  cb(valid ? [] : [new Error('Минимум 0 даларов и максимум 3000')])
-                  return valid
-                } },
-              { required: true, message: 'Поле пустое' },
-            ],
-          })(
-            <InputNumber
-              initialValue={100}
-              formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-              parser={value => value.replace(/\$\s?|(,*)/g, '')}
-            />
-          )}
-        </FormItem>
         <FormItem>
           <div>Сроки (в днях)</div>
           {getFieldDecorator('estimates', {

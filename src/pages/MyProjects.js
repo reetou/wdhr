@@ -58,10 +58,10 @@ export default class MyProjects extends React.Component {
                 <IconText
                   type={'delete'}
                   text={'Удалить'}
-                  onClick={() => project.remove(item.id)}
+                  onClick={() => project.remove(item.project_id)}
                 />,
                 <IconText
-                  onClick={() => project.edit(item.id, { is_public: !item.is_public })}
+                  onClick={() => project.edit(item.project_id, { is_public: !item.is_public })}
                   type={item.is_public ? 'unlock' : 'lock'}
                   text={item.is_public ? 'Публичный' : 'Приватный'}
                 />

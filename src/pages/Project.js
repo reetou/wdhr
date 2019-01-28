@@ -11,14 +11,6 @@ import EditProjectFormDrawer from "../ui/EditProjectFormDrawer"
 import UIAvatar from "../ui/Avatar"
 import * as _ from 'lodash'
 
-const getCoeff = (project) => {
-  let participate_coeff = 0
-  if (project.owner) return 3
-  if (project.is_participator) return 2
-  if (project.is_requested_participation) return 1
-  return participate_coeff
-}
-
 @inject('app', 'auth', 'project')
 @withRouter
 @observer
@@ -39,33 +31,38 @@ export default class Project extends React.Component {
     if (project.loading) return <h1>Loading</h1>
     const proj = project.currentProject
     const participateButton = () => {
-      switch (getCoeff(proj)) {
-        case 0:
+      console.log(`Project rank`, proj.rank)
+      switch (proj.rank) {
+        case -1:
           return (
             <Button disabled={project.showParticipationForm} onClick={() => project.showParticipationForm = true}>
               Участвовать
             </Button>
           )
+        case 0:
+          return (
+            <Button onClick={() => project.revertParticipationRequest(proj.project_id)}>Отозвать заявку</Button>
+          )
         case 1:
           return (
-            <Button onClick={() => project.revertParticipationRequest(proj.id)}>Отозвать заявку</Button>
+            <Button disabled>Отказано в участии :(</Button>
           )
         case 2:
           return (
             <React.Fragment>
-              <Button onClick={() => this.props.history.push(`/projects/${proj.id}/participants`)}>Участники</Button>
+              <Button onClick={() => this.props.history.push(`/projects/${proj.project_id}/participants`)}>Участники</Button>
             </React.Fragment>
           )
         case 3:
           return (
             <React.Fragment>
-              <Button style={{ marginBottom: 4 }} block onClick={() => this.props.history.push(`/projects/${proj.id}/requests`)}>Просмотреть заявки</Button>
-              <Button style={{ marginBottom: 4 }} block onClick={() => this.props.history.push(`/projects/${proj.id}/members`)}>Участники</Button>
-              <Button style={{ marginBottom: 4 }} block onClick={() => this.props.history.push(`/projects/${proj.id}/upload`)}>Выложить на кокоро</Button>
+              <Button style={{ marginBottom: 4 }} block onClick={() => this.props.history.push(`/projects/${proj.project_id}/requests`)}>Просмотреть заявки</Button>
+              <Button style={{ marginBottom: 4 }} block onClick={() => this.props.history.push(`/projects/${proj.project_id}/members`)}>Участники</Button>
+              <Button style={{ marginBottom: 4 }} block onClick={() => this.props.history.push(`/projects/${proj.project_id}/upload`)}>Выложить на кокоро</Button>
               <Button style={{ marginBottom: 4 }} disabled={project.showEditForm || project.loading} block onClick={() => project.showEditForm = true}>Редактировать</Button>
             </React.Fragment>
           )
-        default: return <div>Ошибка, не могу показать кнопку</div>
+        default: return <div>Ошибка, не могу показать кнопку. Ранк: {proj.rank}</div>
       }
     }
 
@@ -84,9 +81,9 @@ export default class Project extends React.Component {
                   <span>{proj.members_count}</span>
                 </Button> : null
               }
-              <h1 style={{ marginBottom: 0, marginLeft: 10 }}>{_.capitalize(proj.name)} purojecto</h1>
+              <h1 style={{ marginBottom: 0, marginLeft: 10 }}>{_.capitalize(proj.project_name)} purojecto</h1>
             </div>
-            <p>by {proj.author}</p>
+            <p>by {proj.owner}</p>
             <UIAvatar
               url={proj.avatar_url || ''}
               style={{
@@ -96,7 +93,7 @@ export default class Project extends React.Component {
             <p>Стек и технологии: {project.parsedTechs}</p>
             <p>Рейтинг: {proj.rating}</p>
             {
-              proj.repo && <p><a href={proj.repo.html_url} target={'_blank'}>{proj.repo.html_url}</a></p>
+              proj.repository_id && <p><a href={`https://github.com/${proj.full_name}`} target={'_blank'}>{proj.full_name}</a></p>
             }
             <h3>{proj.title}</h3>
             <p>{proj.description}</p>

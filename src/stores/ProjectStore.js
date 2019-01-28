@@ -127,7 +127,7 @@ export default class ProjectStore {
           const errMessage = _.has(err, 'response.data.err') ? `${defaultErrMessage}: ${err.response.data.err}` : defaultErrMessage
           message.error(errMessage)
         },
-        () => message.success(`Проект ${data.name} создан успешно.`, 2.5))
+        () => message.success(`Проект ${data.project_name} создан успешно.`, 2.5))
   }
 
   @action.bound
@@ -266,6 +266,7 @@ export default class ProjectStore {
       method: 'PUT',
       data,
     }))
+      .finally(() => this.loading = false)
       .subscribe(
         v => {
           this.projects = []
@@ -335,9 +336,13 @@ export default class ProjectStore {
       })
       .subscribe(
         res => {
-          this.projects = this.projects.concat(res.data.projects)
-          this.cursor = res.data.cursor
-          this.hasMore = Boolean(Number(res.data.cursor))
+          console.log(`At load all projects`, res.data)
+          this.projects = this.projects.concat(res.data.results)
+          // Items per page
+          if (res.data.total >= 100) {
+            this.cursor = this.cursor + 1
+          }
+          this.hasMore = Boolean(Number(this.cursor))
         },
         e => {
           const validationErr = _.at(e, 'response.data.err')[0]
@@ -477,7 +482,7 @@ export default class ProjectStore {
       url: `${this.app.API_HOST}/api/projects/rate`,
       method: down ? 'DELETE' : 'POST',
       data: {
-        id: Number(id)
+        project_id: Number(id)
       },
     }))
       .finally(() => {
