@@ -62,7 +62,7 @@ const start = function() {
   });
 
   passport.deserializeUser(function(obj, done) {
-    User.updatePublicRepos(obj._json.repos_url, obj.username)
+    User.updatePublicRepos(obj._json.repos_url, obj.username, obj._json.id)
     done(null, obj);
   });
 

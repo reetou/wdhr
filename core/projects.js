@@ -11,6 +11,7 @@ const UserModel = require('../models/UserModel')
 const ProjectModel = require('../models/ProjectModel')
 const ParticipationModel = require('../models/ParticipationModel')
 const ProjectRatingModel = require('../models/ProjectRatingModel')
+const ProjectTechModel = require('../models/ProjectTechModel')
 const TechModel = require('../models/TechModel')
 const { transaction } = require('objection')
 const {
@@ -216,10 +217,17 @@ class Projects {
     return html
   }
 
-  async get(owner, page = 0) {
+  async get(page = 0, owner) {
     const projects = await ProjectModel
       .query()
-      .where({ owner })
+      .where(
+        builder => {
+          if (owner) {
+            builder.where({ owner })
+          }
+          return builder
+        }
+      )
       .andWhere({ is_public: true })
       .page(page, 100)
     if (projects.total) {
@@ -230,6 +238,45 @@ class Projects {
       }
     }
     return projects
+  }
+
+  /**
+   * Возвращает исходный массив с проектами с добавленным полем rank
+   * @param projects {[Object]} Проекты
+   * @param request_login {string} Логин, для которого пересчитать rank
+   * @returns {Promise<[Object]>} Проекты
+   */
+  async getProjectsPermissions(projects, request_login) {
+    return await Promise.all(
+      projects.map(async p => {
+        const request = await ParticipationModel
+          .query()
+          .select(['request_status'])
+          .where({ project_id: p.project_id })
+          .andWhere({ request_login })
+          .first()
+        if (p.owner === request_login) {
+          p.rank = 3
+          return p
+        }
+        if (!request) {
+          p.rank = -1
+          return p
+        }
+        if (request.request_status === 0) {
+          p.rank = 0
+          return p
+        }
+        if (request.request_status === 1) {
+          p.rank = 1
+          return p
+        }
+        if (request.request_status === 2) {
+          p.rank = 2
+          return p
+        }
+      })
+    )
   }
 
   async getAdditionalProjectInfo(source, options) {
@@ -256,7 +303,7 @@ class Projects {
     return project
   }
 
-  async getUserProjects(owner, withPrivate) {
+  async getUserProjects(owner, withPrivate = false) {
     const projects = await ProjectModel
       .query()
       .select('*')
@@ -269,6 +316,8 @@ class Projects {
   }
 
   async rate(data, up = true) {
+    const project = await this.getById(data.project_id)
+    if (!project) throw new Error(`No such project`)
     if (up) {
       return await ProjectRatingModel
         .query()
@@ -397,8 +446,9 @@ class Projects {
     }
   }
 
-  async edit(project_id, data) {
+  async edit(project_id, data, login) {
     let project = await this.getById(project_id, true)
+    if (project.owner !== login) throw new Error(`Not an owner`)
     const oldEdit = JSON.stringify(project)
     if (!project) throw new Error(`No project found by id ${project_id}`)
     _.forEach(data, (value, key) => {
@@ -450,11 +500,64 @@ class Projects {
     return count >= countLimit
   }
 
+  /**
+   * Метод для создания проекта
+   * @param data {Object}
+   * @param data.project_name {string}
+   * @param data.is_public {boolean}
+   * @param data.estimates {number}
+   * @param data.github_id {number}
+   * @param data.owner {string}
+   * @param data.description {string}
+   * @param data.title {string}
+   * @param data.avatar_url {string}
+   * @param data.repository_id {number=}
+   * @param data.repository_name {string=}
+   * @param data.techs {[number]}
+   * @returns {Promise<Object>}
+   */
   async create(data) {
     if (await this.isAboveProjectCountLimit(data.owner)) throw new Error('Достигнут лимит проектов')
-    return await ProjectModel
-      .query(trx)
-      .insert(data)
+    let trx
+    try {
+      console.log(`Will create project data`, data)
+      const clone = _.cloneDeep(data)
+      delete clone.techs
+      trx = await transaction.start(ProjectModel.knex())
+      const result = await ProjectModel
+        .query(trx)
+        .insert(clone)
+      const techs = await this.getTechs()
+      const techsIds = techs.map(t => t.tech_id)
+      console.log(`TECHS`, techs)
+      for (let t of data.techs) {
+        if (techsIds.includes(t)) {
+          try {
+            const tech = techs.find(i => i.tech_id === t)
+            console.log(`Searching for tech name with tech id === ${t}`, tech)
+            await ProjectTechModel
+              .query(trx)
+              .upsertGraph({
+                tech_id: t,
+                tech_name: tech.tech_name,
+                project_id: result.project_id,
+                owner: data.owner,
+                project_name: data.project_name,
+                github_id: data.github_id
+              }, { insertMissing: true })
+          } catch (e) {
+            console.log(`Error at add project tech`, e)
+            throw e
+          }
+        }
+      }
+      await trx.commit()
+      return result
+    } catch (e) {
+      await trx.rollback()
+      console.log(`Error at projects.create`, e)
+      throw e
+    }
   }
 
 }

@@ -28,20 +28,20 @@ router.get('/', checkAuth(), asyncFn(async (req, res) => {
 router.put('/projects/:id', checkAuth(), asyncFn(async (req, res) => {
   const id = req.params.id
   if (!id || !_.isInteger(Number(id))) return res.status(400).send({ err: `Invalid id` })
-  const now = performance.now()
-  const result = await Projects.edit(id, req.user.username, req.body)
-  const end = performance.now()
+  const result = await Projects.edit(id, req.body, req.user.username)
   if (!result) return res.status(403).send({ err: `Editing not own project or no project ${id} found` })
-  console.log(`Edit performed in ${end - now} ms`)
   res.send(result)
 }))
 
 router.get('/projects', checkAuth(), asyncFn(async (req, res) => {
-  const projects = await Projects.getUserProjects(req.user.username)
-  res.send({ projects })
+  console.log(`Get project by username`, req.user._json.id)
+  const projects = await Projects.getUserProjects(req.user.username, true)
+  res.send({ projects: projects.map(p => ({ ...p, rank: 3 })) })
 }))
 
 router.put('/articles/:id', checkAuth(), asyncFn(async (req, res) => {
+  // TBD
+  return res.status(404)
   const id = req.params.id
   if (!id || !_.isInteger(Number(id))) return res.status(400).send({ err: `Invalid id` })
   console.log('req body new article', req.body)
@@ -51,6 +51,8 @@ router.put('/articles/:id', checkAuth(), asyncFn(async (req, res) => {
 }))
 
 router.get('/articles', checkAuth(), asyncFn(async (req, res) => {
+  // TBD
+  return res.status(404)
   const articles = await Article.getUserArticles(req.user.username)
   res.send({ articles })
 }))

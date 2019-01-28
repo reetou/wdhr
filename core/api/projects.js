@@ -9,9 +9,10 @@ const Projects = require('../projects')
 const User = require('../user')
 const multer = require('multer')
 const mltr = multer()
+const ProjectModel = require('../../models/ProjectModel')
+const ParticipationModel = require('../../models/ParticipationModel')
 const { listFiles, removeFilesByPrefix } = require('../s3')
 const { asyncFn, checkForFields, checkAuth, multerMiddleware } = require('../middleware')
-
 
 router.get('/static/:id', checkAuth(), asyncFn(async (req, res) => {
   const project = await Projects.getById(req.params.id, req.user.username, true, false)
@@ -62,28 +63,49 @@ router.post('/avatar/:id', checkAuth(), mltr.single('avatar'), multerMiddleware(
 
 router.get('/', checkAuth(), asyncFn(async (req, res) => {
   const cursor = req.query.cursor || 0
-  const projects = await Projects.get(cursor, req.user.username)
-  res.send(projects)
+  const projectsData = await Projects.get(cursor)
+  const projects = await Projects.getProjectsPermissions(projectsData.results, req.user.username)
+  res.send({
+    ...projectsData,
+    results: projects
+  })
 }))
 
 router.get('/:id', checkAuth(), asyncFn(async (req, res) => {
   const result = await Projects.getById(req.params.id, req.user.username, false, true)
   if (!result) return res.status(404).send({ err: `No public or associated project id ${req.params.id} found` })
-  res.send(result)
+  const project = (await Projects.getProjectsPermissions([result], req.user.username))[0]
+  res.send(project)
 }))
 
 router.post('/', checkAuth(), asyncFn(async (req, res) => {
   const data = req.body
-  const public_repos = await User.getPublicRepos(req.user.username)
-  if (data.repo !== 0 && !public_repos.map(r => Number(r.id)).includes(data.repo)) return res.status(400).send({ err: `User ${req.user.username} has no public repo ${data.repo}` })
+  const public_repos = await User.getPublicRepos(req.user._json.id)
+  if (data.repository_id !== 0 && !public_repos.map(r => Number(r.repository_id)).includes(data.repository_id)) return res.status(400).send({ err: `User ${req.user.username} has no public repo ${data.repository_id}` })
+  const repo = public_repos.find(r => r.repository_id === data.repository_id)
+  console.log(`Public repos`, repo)
   try {
-    const result = await Projects.create(data.name, data.description, data.title, data.estimates, data.techs, req.user.username, data.budget, data.is_public, data.repo)
+    const result = await Projects.create({
+      project_name: data.project_name,
+      github_id: req.user._json.id,
+      description: data.description,
+      title: data.title,
+      estimates: data.estimates,
+      techs: data.techs,
+      owner: req.user.username,
+      is_public: data.is_public,
+      repository_id: repo ? repo.repository_id : null,
+      repository_name: repo ? repo.full_name : null,
+      avatar_url: null
+    })
     if (!result) return res.status(500).send({ err: `Неизвестная ошибка` })
     res.send(result)
   } catch (e) {
+    console.log(`Error at create project`, e)
     if (e.message === 'Достигнут лимит проектов') {
       return res.status(403).send({ err: e.message })
     }
+    res.status(500).send({ err: `Что-то пошло не так` })
   }
 }))
 
@@ -94,13 +116,19 @@ router.get('/mocks/request/:id', asyncFn(async (req, res) => {
   res.send({ created: true })
 }))
 
-router.post('/rate', checkAuth(), checkForFields({ id: 'number' }), asyncFn(async (req, res) => {
-  const updatedRating = await Projects.uprate(req.body.id, req.user.username)
+router.post('/rate', checkAuth(), checkForFields({ project_id: 'number' }), asyncFn(async (req, res) => {
+  const updatedRating = await Projects.rate({
+    project_id: req.body.project_id,
+    login: req.user.username,
+  })
   res.send({ rating: updatedRating })
 }))
 
-router.delete('/rate', checkAuth(), checkForFields({ id: 'number' }), asyncFn(async (req, res) => {
-  const updatedRating = await Projects.downrate(req.body.id, req.user.username)
+router.delete('/rate', checkAuth(), checkForFields({ project_id: 'number' }), asyncFn(async (req, res) => {
+  const updatedRating = await Projects.rate({
+    project_id: req.body.project_id,
+    login: req.user.username,
+  }, false)
   res.send({ rating: updatedRating })
 }))
 

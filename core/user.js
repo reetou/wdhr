@@ -56,15 +56,15 @@ class User {
     return projects.length
   }
 
-  async updatePublicRepos(url, login) {
+  async updatePublicRepos(url, login, github_id) {
     const token = await db.findInHash('tokens', sha1(login))
     let lastUpdate = await db.findInHash(`user_updates`, login)
     let canUpdate = true
+    const now = Date.now()
     if (lastUpdate) {
       lastUpdate = JSON.parse(lastUpdate)
-      const now = Date.now()
       const timeFromLastVisit = now - lastUpdate.date
-      if (timeFromLastVisit < 300000) { // 5 minutes debounce on update user repos
+      if (timeFromLastVisit < 300) { // 5 minutes debounce on update user repos
         canUpdate = false
       }
     }
@@ -81,10 +81,10 @@ class User {
       console.log(`Cannot reach url to update public repos with token ${token}`)
       return false
     }
+    await db.addToHash(`user_updates`, login, JSON.stringify({ date: now }))
+    const currentRepos = await this.getAllRepos(github_id)
     const updatedRepos = await Promise.all(res.data.filter(r => r.owner.login === login).map(async r => {
-      const updated = _.cloneDeep(r)
-      delete updated.owner
-      await PublicRepoModel.query().upsertGraph({
+      return await PublicRepoModel.query().upsertGraph({
         repository_id: r.id,
         github_id: r.owner.id,
         node_id: r.node_id,
@@ -93,13 +93,12 @@ class User {
         language: r.language,
         fork: r.fork
       }, { insertMissing: true })
-      return updated
     }))
-    const currentRepos = await this.getAllRepos(r.owner.id)
-    const updatedReposNames = updatedRepos.map(r => r.repository_id)
-    const currentReposNames = currentRepos.map(r => r.repository_id)
-    const reposNamesToDelete = currentReposNames.filter(v => !updatedReposNames.includes(v))
-    return await PublicRepoModel.query().whereIn('repository_id', reposNamesToDelete).del()
+    const updatedReposIds = updatedRepos.map(r => r.repository_id)
+    // console.log(`Updated repos ids`, updatedReposIds)
+    const currentReposIds = currentRepos.map(r => r.repository_id)
+    const reposIdsToDelete = currentReposIds.filter(v => !updatedReposIds.includes(v))
+    return await PublicRepoModel.query().whereIn('repository_id', reposIdsToDelete).del()
   }
 
   /**
@@ -117,7 +116,12 @@ class User {
    * @returns {Promise<[Object]>}
    */
   async getPublicRepos(github_id) {
-    return await PublicRepoModel.query().select(['repository_id', 'full_name', 'language']).where({ github_id }).andWhere({ private: false }).andWhere({ fork: false })
+    try {
+      return await PublicRepoModel.query().select(['repository_id', 'full_name', 'language']).where({ github_id }).andWhere({ private: false })
+    } catch (e) {
+      console.log(`Error at get public repos`, e)
+      throw e
+    }
   }
 
   /**
@@ -132,7 +136,9 @@ class User {
    * @returns {Promise<Object>} Возвращает объект зарегистрированного пользователя
    */
   async register(data) {
-    return await UserModel
+    console.log(`Doing register`)
+    const hasUser = await UserModel.query().where({ login: data.login }).first()
+    if (!hasUser) return await UserModel
       .query()
       .insert({
         github_id: data.id,
@@ -142,6 +148,17 @@ class User {
         avatar_url: data.avatar_url,
         github_url: data.html_url
       })
+    return await UserModel
+      .query()
+      .where({ login: data.login })
+      .patch({
+        github_register_date: data.created_at,
+        github_update_date: data.updated_at,
+        avatar_url: data.avatar_url,
+        github_url: data.html_url
+      })
+      .returning('*')
+      .first()
   }
 
 }
