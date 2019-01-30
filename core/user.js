@@ -64,7 +64,7 @@ class User {
     if (lastUpdate) {
       lastUpdate = JSON.parse(lastUpdate)
       const timeFromLastVisit = now - lastUpdate.date
-      if (timeFromLastVisit < 300) { // 5 minutes debounce on update user repos
+      if (timeFromLastVisit < 300000) { // 5 minutes debounce on update user repos
         canUpdate = false
       }
     }
