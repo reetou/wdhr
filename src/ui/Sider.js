@@ -56,6 +56,12 @@ export default class UISider extends React.Component {
               <span>Про WDH</span>
             </Link>
           </Menu.Item>
+          <Menu.Item key="7" className={itemClassname}>
+            <a href={'https://github.com/reetou/wdhr'} target={'_blank'}>
+              <Icon type="github" />
+              <span>Исходники</span>
+            </a>
+          </Menu.Item>
         </Menu>
       </Sider>
     )
