@@ -114,7 +114,7 @@ const start = function() {
         if (!visits.length || timeFromLastVisit >= lastVisitDebounce) {
           pusher.projectBundleVisit(project.author, {
             visitor: req.user.username,
-            name: project.name,
+            project_name: project.name,
             domain: header
           })
         }

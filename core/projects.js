@@ -321,17 +321,25 @@ class Projects {
     const project = await this.getById(data.project_id)
     if (!project) throw new Error(`No such project`)
     if (up) {
-      return await ProjectRatingModel
+      const uprate = ProjectRatingModel
         .query()
         .insert(data)
+      await pusher.projectRate(project.owner, {
+        login: data.login, project_name: project.project_name
+      })
+      return uprate
     }
-    return await ProjectRatingModel
+    const downrate = await ProjectRatingModel
       .query()
       .where({ project_id: data.project_id })
       .andWhere({ login: data.login })
       .del()
       .returning('*')
       .first()
+    await pusher.projectRateRevert(project.owner, {
+      login: data.login, project_name: project.project_name
+    })
+    return downrate
   }
 
   async getById(project_id, checkPrivate = false, options) {
@@ -370,6 +378,8 @@ class Projects {
       telegram,
       github_id,
     } = data
+    const project = await this.getById(project_id)
+    if (!project) throw new Error(`No such project ${project_id}`)
     const request = await ParticipationModel.query().where({ project_id }).andWhere({ request_login }).first()
     if (request) throw new Error(`Already requested user ${request_login} for project ${project_id}`)
     const result = await ParticipationModel
@@ -384,17 +394,28 @@ class Projects {
         github_id,
         request_status: 0
       })
+    await pusher.projectParticipationRequest(project.owner, {
+      request_login,
+      project_name,
+    })
     return result
   }
 
   async revokeParticipation(project_id, request_login) {
-    return await ParticipationModel
+    const project = await this.getById(project_id)
+    if (!project) throw new Error(`No such public project ${project_id}`)
+    const result = await ParticipationModel
       .query()
       .where({ project_id })
       .andWhere({ request_login })
       .del()
       .returning('*')
       .first()
+    await pusher.projectParticipationRevoke(project.owner, {
+      request_login,
+      project_name: project.project_name
+    })
+    return result
   }
 
   async acceptParticipator(project_id, request_login) {

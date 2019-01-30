@@ -14,6 +14,7 @@ const PUSHER = {
     PROJECT_PARTICIPATION_ACCEPT: `project_participation_accept`,
     PROJECT_PARTICIPATION_REJECT: `project_participation_reject`,
     PROJECT_PARTICIPATION_REQUEST: `project_participation_request`,
+    PROJECT_PARTICIPATION_REVOKE: `project_participation_revoke`,
     PARTICIPATOR_LEAVE: `project_participator_leave`,
     PARTICIPATOR_JOIN: `project_participator_join`,
     PROJECT_VISIT: `project_bundle_visit`

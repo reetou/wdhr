@@ -39,6 +39,10 @@ class Pusher {
     this.pusher.trigger(`user_${login}`, ev.PROJECT_PARTICIPATION_REQUEST, data)
   }
 
+  projectParticipationRevoke(login, data) {
+    this.pusher.trigger(`user_${login}`, ev.PROJECT_PARTICIPATION_REVOKE, data)
+  }
+
   projectBundleVisit(login, data) {
     this.pusher.trigger(`user_${login}`, ev.PROJECT_VISIT, data)
   }

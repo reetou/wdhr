@@ -30,12 +30,12 @@ class Pusher {
       const key = `open_${ev.PROJECT_PARTICIPATION_ACCEPT}_${Date.now()}`;
       const btn = (
         <Button type="primary" size="small" onClick={() => notification.close(key)}>
-          OK
+          Ура!
         </Button>
       );
       notification.open({
         message: 'Заявка одобрена',
-        description: `Теперь вы участник проекта ${data.name}`,
+        description: `Теперь вы участник проекта ${data.project_name} на позиции ${data.position}`,
         btn,
         duration: 0,
         key,
@@ -52,7 +52,7 @@ class Pusher {
       );
       notification.open({
         message: 'Заявка отклонена',
-        description: `Заявка в проект ${data.name} отклонена. Причина: ${data.reason || 'Не указана'}`,
+        description: `Заявка в проект ${data.project_name} отклонена :(`,
         btn,
         duration: 0,
         key,
@@ -69,7 +69,7 @@ class Pusher {
       );
       notification.open({
         message: 'Проект оценен',
-        description: `Пользователь ${data.login} посчитал интересным проект ${data.name}`,
+        description: `Пользователь ${data.login} посчитал интересным проект ${data.project_name}`,
         btn,
         duration: 0,
         key,
@@ -86,7 +86,7 @@ class Pusher {
       );
       notification.open({
         message: 'Проект не интересует',
-        description: `Пользователь ${data.login} больше не считает интересным ваш проект ${data.name}`,
+        description: `Пользователь ${data.login} больше не считает интересным ваш проект ${data.project_name}`,
         btn,
         duration: 0,
         key,
@@ -103,7 +103,7 @@ class Pusher {
       );
       notification.open({
         message: 'Заявка на участие',
-        description: `Пользователь ${data.login} желает присоединиться к проекту ${data.name}`,
+        description: `Пользователь ${data.request_login} желает присоединиться к проекту ${data.project_name}`,
         btn,
         duration: 0,
         key,
@@ -111,12 +111,21 @@ class Pusher {
       console.log(`Someone requested participation`, data)
     })
 
-    channel.bind(ev.PARTICIPATOR_JOIN, data => {
-      console.log(`Participator joined`, data)
-    })
-
-    channel.bind(ev.PARTICIPATOR_LEAVE, data => {
-      console.log(`Participator left`, data)
+    channel.bind(ev.PROJECT_PARTICIPATION_REVOKE, data => {
+      const key = `open_${ev.PROJECT_PARTICIPATION_REVOKE}_${Date.now()}`;
+      const btn = (
+        <Button type="primary" size="small" onClick={() => notification.close(key)}>
+          Понятно
+        </Button>
+      );
+      notification.open({
+        message: 'Отзыв заявки',
+        description: `Пользователь ${data.request_login} отозвал свою заявку в проект ${data.project_name}`,
+        btn,
+        duration: 0,
+        key,
+      });
+      console.log(`Someone revoked participation`, data)
     })
 
     channel.bind(ev.PROJECT_VISIT, data => {
@@ -128,7 +137,7 @@ class Pusher {
       );
       notification.open({
         message: 'Посещение проекта',
-        description: `Пользователь ${data.visitor} только что посетил ваш проект ${data.name} на ${data.domain}`,
+        description: `Пользователь ${data.visitor} только что посетил ваш проект ${data.project_name} на ${data.domain}`,
         btn,
         duration: 0,
         key,
