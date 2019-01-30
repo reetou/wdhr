@@ -8,6 +8,10 @@ module.exports = {
       database: 'wdhr_dev',
       user:     'postgres',
       password: 'postgres'
+    },
+    seeds: {
+      directory: './seeds/development',
+      loadExtensions: ['.js']
     }
   },
 
@@ -40,6 +44,9 @@ module.exports = {
     },
     migrations: {
       tableName: 'knex_migrations'
+    },
+    seeds: {
+      directory: './seeds/production'
     }
   }
 
