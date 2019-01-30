@@ -31,7 +31,7 @@ export default class ProjectMembers extends React.Component {
         <List
           itemLayout="vertical"
           size="large"
-          dataSource={project.projectMembers}
+          dataSource={currentProject.members}
           renderItem={item => (
             <List.Item
               key={item.title}
