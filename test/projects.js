@@ -36,7 +36,7 @@ test.before('Revert changes in projects and remove rates', async t => {
     .where({ project_id })
     .andWhere({ request_login: login })
     .del()
-  await ProjectModel.query().insert({
+  await ProjectModel.query().upsertGraph({
     project_id: 3,
     repository_id: null,
     repository_name: null,
@@ -48,27 +48,29 @@ test.before('Revert changes in projects and remove rates', async t => {
     avatar_url: 'https://i.imgur.com/yrN2fa1C.jpg',
     estimates: 5,
     is_public: true
-  })
-  await ParticipationModel.query().insert({
-    github_id: 40545199,
-    project_id: 3,
-    request_login: login,
-    project_name: 'project3',
-    position: 'Senior Ruby Developer',
-    comment: 'Profiliruyu vashi pythonы123',
-    telegram: 'testuser_telegram',
-    request_status: 2
-  })
-  await ParticipationModel.query().insert({
-    github_id: 40545201,
-    project_id: 3,
-    request_login: 'reetou',
-    project_name: 'project3',
-    position: 'Senior JavaScript Developer',
-    comment: 'Profiliruyu vashi javascripty',
-    telegram: 'zae',
-    request_status: 0
-  })
+  }, { insertMissing: true })
+  await ParticipationModel.query().upsertGraph([
+    {
+      github_id: 40545199,
+      project_id: 3,
+      request_login: login,
+      project_name: 'project3',
+      position: 'Senior Ruby Developer',
+      comment: 'Profiliruyu vashi pythonы123',
+      telegram: 'testuser_telegram',
+      request_status: 2
+    },
+    {
+      github_id: 18047528,
+      project_id: 3,
+      request_login: 'reetou',
+      project_name: 'project3',
+      position: 'Senior JavaScript Developer',
+      comment: 'Profiliruyu vashi javascripty',
+      telegram: 'zae',
+      request_status: 0
+    }
+  ], { insertMissing: true })
 })
 
 test.after('Remove test projects', async t => {
@@ -238,7 +240,7 @@ test('[Projects.edit()] should edit project successfully', async t => {
       fields[field] = project[field]
     }
   })
-  const editedProject = await Projects.edit(project.project_id, project)
+  const editedProject = await Projects.edit(project.project_id, project, 'trplfr')
   t.plan(Object.keys(fields).length)
   _.forEach(fields, (value, field) => {
     t.is(editedProject[field], value, `${field} should be equal after edit`)
