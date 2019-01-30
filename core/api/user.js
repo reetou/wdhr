@@ -30,7 +30,9 @@ router.put('/projects/:id', checkAuth(), asyncFn(async (req, res) => {
   if (!id || !_.isInteger(Number(id))) return res.status(400).send({ err: `Invalid id` })
   const result = await Projects.edit(id, req.body, req.user.username)
   if (!result) return res.status(403).send({ err: `Editing not own project or no project ${id} found` })
-  res.send(result)
+  let project = await Projects.getById(req.params.id, true, { requests: true, members: true })
+  project = (await Projects.getProjectsPermissions([project], req.user.username))[0]
+  res.send(project)
 }))
 
 router.get('/projects', checkAuth(), asyncFn(async (req, res) => {
