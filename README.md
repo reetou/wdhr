@@ -64,6 +64,9 @@
 * REDIS_HOST=хост редиса
 * REDIS_PASSWORD=пароль от редиса
 * REDIS_PORT=порт от редиса (если не указать то будет 6379)
+* POSTGRES_DATABASE=название базы в постгресе (прод онли)
+* POSTGRES_USER=название роли в постгресе (прод онли)
+* POSTGRES_PASSWORD=nuff said.(прод онли)
 
 
 # TODO
