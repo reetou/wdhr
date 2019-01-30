@@ -6,7 +6,6 @@ exports.seed = async function(knex, Promise) {
   const Knex = ProjectModel.knex()
   const projects = [
     {
-      project_id: 1,
       repository_id: 1529562624,
       repository_name: 'trplfr/trplfr.github.io',
       github_id: 40545199,
@@ -17,7 +16,6 @@ exports.seed = async function(knex, Promise) {
       avatar_url: null,
     },
     {
-      project_id: 2,
       repository_id: 1529562625,
       repository_name: 'trplfr/trplfr_repo',
       github_id: 40545199,
