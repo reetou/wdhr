@@ -44,6 +44,8 @@ export default class AllProjects extends React.Component {
         <Button onClick={project.loadAll}>Еще</Button>
       </div>
     ) : null
+    console.log(`PROJECT SORTED PROJECTS`, project.sortedProjects)
+    console.log(`Projects all`, project.projects)
     return (
       <div style={{ padding: 24, background: '#fff', height: 690, overflow: 'auto' }}>
         <h1>Проекты <Button onClick={project.loadAll} disabled={project.loading}>{project.hasMore ? 'Подгрузить еще' : 'Загрузить заново'}</Button></h1>
