@@ -50,7 +50,7 @@ export default class Project extends React.Component {
         case 2:
           return (
             <React.Fragment>
-              <Button onClick={() => this.props.history.push(`/projects/${proj.project_id}/participants`)}>Участники</Button>
+              <p>Ура! Ты участник! Автор проекта знает твои контакты и обязательно свяжется с тобой, ты главное жди.</p>
             </React.Fragment>
           )
         case 3:

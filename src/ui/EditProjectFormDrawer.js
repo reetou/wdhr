@@ -29,7 +29,7 @@ class EditProjectFormDrawer extends React.Component {
     try {
       const data = await this.validate()
       console.log('Requesting participation with data', data)
-      await this.props.project.edit(this.props.project.currentProject.id, data, () => this.props.project.showEditForm = false)
+      await this.props.project.edit(this.props.project.currentProject.project_id, data, () => this.props.project.showEditForm = false)
     } catch (e) {
       console.log('Err', e)
       const validationErr = _.at(e, 'response.data.err')[0]
@@ -86,7 +86,7 @@ class EditProjectFormDrawer extends React.Component {
               showUploadList={false}
               beforeUpload={file => {
                 console.log(`File`, file)
-                project.uploadAvatar(file, project.currentProject.id)
+                project.uploadAvatar(file, project.currentProject.project_id)
                 return false
               }}
               onChange={info => {
