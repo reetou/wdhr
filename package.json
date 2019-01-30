@@ -14,7 +14,7 @@
     "migrate": "knex migrate:latest",
     "rollback": "knex migrate:rollback",
     "seed": "knex seed:run",
-    "test": "ava"
+    "test": "ava --serial"
   },
   "dependencies": {
     "@babel/core": "^7.0.0-0",
