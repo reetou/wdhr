@@ -15,18 +15,18 @@ const { listFiles, removeFilesByPrefix } = require('../s3')
 const { asyncFn, checkForFields, checkAuth, multerMiddleware } = require('../middleware')
 
 router.get('/static/:id', checkAuth(), asyncFn(async (req, res) => {
-  const project = await Projects.getById(req.params.id, req.user.username, true, false)
+  const project = await Projects.getById(req.params.id, true)
   if (!project) return res.status(404).send({ err: `No such project ${req.params.id}` })
   res.send({
     maximum_size: await Projects.getProjectMaximumSize(req.user.username),
-    project_id: req.params.id,
-    project_size: await Projects.getStaticFolderSize(`project_${req.params.id}_${project.name}`)
+    project_id: project.project_id,
+    project_size: await Projects.getStaticFolderSize(`project_${project.project_id}_${project.project_name}`)
   })
 }))
 
 router.delete('/static/:id', checkAuth(), asyncFn(async (req, res) => {
   const id = req.params.id
-  const project = await Projects.getById(id, req.user.username, true, false)
+  const project = await Projects.getById(id, true)
   if (!project) res.status(404).send({ err: `No such public project` })
   const result = await Projects.removeProjectStaticFiles(project)
   if (!result) return res.status(409).send({ err: `Cannot remove all files` })
@@ -56,7 +56,7 @@ router.post('/avatar/:id', checkAuth(), mltr.single('avatar'), multerMiddleware(
   const project = await Projects.getById(id, req.user.username, true)
   if (!project) return res.status(404).send({ err: `No such project found: ${id}` })
   console.log(`Req file at avatar`, req.file)
-  const result = await Projects.updateAvatar(id, req.file, project)
+  const result = await Projects.updateAvatar(id, req.file)
   if (!result) return res.status(409).send({ err: `Cannot upload avatar` })
   res.send(result)
 }))

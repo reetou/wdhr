@@ -83,7 +83,7 @@ class Projects {
   }
 
   async isProjectSizeAboveLimit(project, login, filesSummarySize) {
-    const prefix = `project_${project.id}_${project.name}`
+    const prefix = `project_${project.project_id}_${project.project_name}`
     const projectSize = await this.getStaticFolderSize(prefix)
     const maximumSize = await this.getProjectMaximumSize(login)
     return Boolean(maximumSize < projectSize + filesSummarySize)
@@ -91,7 +91,7 @@ class Projects {
 
   async removeProjectStaticFiles(project) {
     if (!project) return false
-    const prefix = `project_${project.id}_${project.name}`
+    const prefix = `project_${project.project_id}_${project.project_name}`
     return await removeFilesByPrefix(prefix)
   }
 
@@ -143,9 +143,9 @@ class Projects {
   }
 
   async uploadBundle(files, projectId, login, folder = '') {
-    const project = await this.getById(projectId, login, true, false)
+    const project = await this.getById(projectId, true)
     if (!project) throw new Error(`No such public project ${projectId}`)
-    const prefix = `project_${project.id}_${project.name}`
+    const prefix = `project_${project.project_id}_${project.project_name}`
     let summaryFilesSize = 0
     files.forEach(f => summaryFilesSize += f.size)
     const isAboveLimit = await this.isProjectSizeAboveLimit(project, login, summaryFilesSize)
@@ -166,9 +166,9 @@ class Projects {
         console.log(`Error while trying to validate bundle`, e)
       }
     }
-    const projectSubdomainName = `${project.id}-${project.name.toLowerCase()}`
+    const projectSubdomainName = `${project.project_id}-${project.project_name.toLowerCase()}`
     console.log(`Saving bundle`)
-    await this.saveBundle(result, projectSubdomainName, folder, indexFile, project.author, project.name)
+    await this.saveBundle(result, projectSubdomainName, folder, indexFile, project.owner, project.project_name)
     return true
   }
 
