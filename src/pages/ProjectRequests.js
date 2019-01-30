@@ -42,11 +42,11 @@ export default class ProjectRequests extends React.Component {
         >
           <Row>
             <Col xs={24} md={4}>
-              <Button style={{ marginRight: 10 }} onClick={() => this.props.history.push(`/projects/${proj.id}`)}>
+              <Button style={{ marginRight: 10 }} onClick={() => this.props.history.push(`/projects/${proj.project_id}`)}>
                 Назад
               </Button>
             </Col>
-            <Col xs={24} md={20}><h1 style={{ margin: 0 }}>Заявки на участие в проекте {proj.name}</h1></Col>
+            <Col xs={24} md={20}><h1 style={{ margin: 0 }}>Заявки на участие в проекте {proj.project_name}</h1></Col>
           </Row>
           <div
             style={{
@@ -63,13 +63,12 @@ export default class ProjectRequests extends React.Component {
       )
     }
     const requestDecisionResult = item => {
-      switch (project.requestDecision[`project_${proj.id}_login_${item.login}`]) {
+      switch (project.requestDecision[`project_${proj.project_id}_login_${item.request_login}`]) {
         case 'ACCEPTED': return [<div>Одобрено</div>]
         case 'DENIED': return [<div>Отклонено</div>]
         default: return [
-          <Button onClick={() => project.acceptParticipationRequest(proj.id, item.login, () => this.forceUpdate())}>Принять</Button>,
-          <Button onClick={() => project.initDenyReason(item.login)}>Отклонить</Button>,
-          <div>{new Date(item.date).toLocaleDateString()}</div>
+          <Button onClick={() => project.acceptParticipationRequest(proj.project_id, item.request_login, () => this.forceUpdate())}>Принять</Button>,
+          <Button onClick={() => project.initDenyReason(item.request_login)}>Отклонить</Button>,
         ]
       }
     }
@@ -80,7 +79,7 @@ export default class ProjectRequests extends React.Component {
     };
     return (
       <div style={{ padding: 24, background: '#fff', minHeight: 460 }}>
-        <h1>Заявки проекта {proj.name}</h1>
+        <h1>Заявки проекта {proj.project_name}</h1>
         <List
           itemLayout="vertical"
           size="large"
@@ -91,18 +90,17 @@ export default class ProjectRequests extends React.Component {
               actions={requestDecisionResult(item)}
             >
               <List.Item.Meta
-                avatar={<Avatar shape={'square'} size={'large'} src={item.avatar_url} />}
-                title={`${item.login} претендует на позицию ${item.position}`}
+                title={`${item.request_login} претендует на позицию ${item.position}`}
                 description={item.comment}
               />
-              <p>Связаться со мной: @{item.contacts.telegram}</p>
+              <p>Связаться со мной: @{item.telegram}</p>
             </List.Item>
           )}
         />
         <Modal
           title="Отказать в реквесте на участие"
           visible={project.showDenyReasonForm}
-          onOk={() => project.denyParticipationRequest(project.currentProject.id)}
+          onOk={() => project.denyParticipationRequest(project.currentProject.project_id)}
           confirmLoading={project.requestLoading}
           onCancel={project.resetDenyReason}
         >

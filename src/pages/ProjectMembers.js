@@ -27,13 +27,7 @@ export default class ProjectMembers extends React.Component {
     console.log(`current project`, toJS(currentProject))
     return (
       <div style={{ padding: 24, background: '#fff', minHeight: 460 }}>
-        <h1>Участники проекта {currentProject.name}</h1>
-        <List.Item.Meta
-          avatar={<Avatar shape={'square'} size={'large'} src={project.projectOwner.avatar_url} />}
-          title={project.projectOwner.login}
-          description={'Owner'}
-          style={{ marginBottom: 30 }}
-        />
+        <h1>Участники проекта {currentProject.project_name}</h1>
         <List
           itemLayout="vertical"
           size="large"
@@ -41,11 +35,10 @@ export default class ProjectMembers extends React.Component {
           renderItem={item => (
             <List.Item
               key={item.title}
-              actions={[<p>{`Присоединился ${new Date(item.joined).toLocaleDateString()}`}</p>]}
             >
               <List.Item.Meta
                 avatar={<Avatar shape={'square'} size={'large'} src={item.avatar_url} />}
-                title={item.login}
+                title={item.request_login}
                 description={item.position}
               />
             </List.Item>

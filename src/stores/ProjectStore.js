@@ -160,13 +160,14 @@ export default class ProjectStore {
       url: `${this.app.API_HOST}/api/project/participation/owner/deny/${projectId}`,
       method: 'POST',
       data: {
-        login,
+        request_login: login,
         reason: this.parsedDenyReason
       }
     }))
       .subscribe(
         res => {
           console.log(`Participant accepted successfully`, res.data)
+          this.currentProject = res.data
         },
         err => {
           console.log(`Error at request accept as owner`, err)
@@ -188,11 +189,12 @@ export default class ProjectStore {
     Rx.Observable.fromPromise(this.app.axios({
       url: `${this.app.API_HOST}/api/project/participation/owner/accept/${projectId}`,
       method: 'POST',
-      data: { login }
+      data: { request_login: login }
     }))
       .subscribe(
         res => {
           console.log(`Participant accepted successfully`, res.data)
+          this.currentProject = res.data
         },
         err => {
           console.log(`Error at request accept as owner`, err)

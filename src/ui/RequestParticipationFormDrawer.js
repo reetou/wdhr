@@ -29,7 +29,7 @@ class RequestParticipationFormDrawer extends React.Component {
     try {
       const data = await this.validate()
       console.log('Requesting participation with data', data)
-      await this.props.project.requestParticipation(this.props.project.currentProject.id, data)
+      await this.props.project.requestParticipation(this.props.project.currentProject.project_id, data)
     } catch (e) {
       console.log('Err', e)
       const validationErr = _.at(e, 'response.data.err')[0]
@@ -88,7 +88,7 @@ class RequestParticipationFormDrawer extends React.Component {
             )}
           </Form.Item>
           <Form.Item label="Позиция">
-            {getFieldDecorator('contacts.telegram', {
+            {getFieldDecorator('telegram', {
               rules: [
                 { required: true, message: 'Как с тобой связаться-то, подельник?' },
                 { max: 30, message: 'Это точно телега?' }
