@@ -64,7 +64,7 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, 'dist_wb'),
-    filename: 'foo.bundle.js'
+    filename: '[name]_[hash]_bundle.js'
   },
   node: {
     console: false,
