@@ -231,7 +231,7 @@ export default class ProjectUploadMultipleDirectory extends React.Component {
     const { project, app } = this.props
     const proj = project.currentProject
     return <div style={{ background: '#fff', minHeight: 460 }}>
-      <p>Залей свой собранный проект сюда, чтобы Чоко собрала все и выложила на <a href={`http://${proj.project_id}-${proj.project_name}.kokoro.codes`} style={{ fontWeight: 'bold' }} target={'_blank'}>{proj.project_id}-{proj.name}.kokoro.codes!</a></p>
+      <p>Залей свой собранный проект сюда, чтобы Чоко собрала все и выложила на <a href={`http://${proj.project_id}-${proj.project_name}.kokoro.codes`} style={{ fontWeight: 'bold' }} target={'_blank'}>{proj.project_id}-{proj.project_name}.kokoro.codes!</a></p>
       { this.hasEmptyDirectories && <p style={{ color: 'red' }}>Папки не могут быть пустыми, удалите их или добавьте файлы</p> }
       <Row>
         <p
