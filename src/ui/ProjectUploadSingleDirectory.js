@@ -22,7 +22,7 @@ export default class ProjectUploadSingleDirectory extends React.Component {
     const { project, app } = this.props
     const proj = project.currentProject
     return <div style={{ background: '#fff', minHeight: 460 }}>
-      <p>Залей свою папку с бандлом сюда, чтобы Чоко собрала все и выложила на <a href={`http://${proj.id}-${proj.name}.kokoro.codes`} style={{ fontWeight: 'bold' }} target={'_blank'}>{proj.id}-{proj.name}.kokoro.codes!</a></p>
+      <p>Залей свою папку с бандлом сюда, чтобы Чоко собрала все и выложила на <a href={`http://${proj.project_id}-${proj.project_name}.kokoro.codes`} style={{ fontWeight: 'bold' }} target={'_blank'}>{proj.project_id}-{proj.project_name}.kokoro.codes!</a></p>
       {
         this.files.length ? <p>Файлов: <span style={{ fontWeight: 'bold' }}>{String(this.files.length)}</span></p> : null
       }
@@ -55,7 +55,7 @@ export default class ProjectUploadSingleDirectory extends React.Component {
         <Col xs={24} sm={4}>
           <Button
             disabled={!this.files.length || project.loading}
-            onClick={() => project.uploadBundle(toJS(this.files), proj.id, () => this.files = [])}
+            onClick={() => project.uploadBundle(toJS(this.files), proj.project_id, () => this.files = [])}
           >
             Загрузить
           </Button>
@@ -72,7 +72,7 @@ export default class ProjectUploadSingleDirectory extends React.Component {
           <Button
             type={'danger'}
             disabled={project.loading}
-            onClick={() => project.clearProjectStorage(proj.id)}
+            onClick={() => project.clearProjectStorage(proj.project_id)}
           >
             Форматировать хранилище
           </Button>

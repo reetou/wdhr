@@ -152,7 +152,7 @@ export default class ProjectUploadMultipleDirectory extends React.Component {
     _.forEach(this.fileStructure, (files, directory) => {
       project.uploadBundlePart(
         files,
-        project.currentProject.id,
+        project.currentProject.project_id,
         directory,
         () => {
           this.uploadedDirectories.push(directory)
@@ -166,7 +166,7 @@ export default class ProjectUploadMultipleDirectory extends React.Component {
     if (this.rootDirectoryFiles.length) {
       project.uploadBundle(
         this.rootDirectoryFiles,
-        project.currentProject.id,
+        project.currentProject.project_id,
         () => {
           this.uploadedRootDirectoryFiles = true
           if (this.uploadedDirectories.length === Object.keys(this.fileStructure).length) {
@@ -231,7 +231,7 @@ export default class ProjectUploadMultipleDirectory extends React.Component {
     const { project, app } = this.props
     const proj = project.currentProject
     return <div style={{ background: '#fff', minHeight: 460 }}>
-      <p>Залей свой собранный проект сюда, чтобы Чоко собрала все и выложила на <a href={`http://${proj.id}-${proj.name}.kokoro.codes`} style={{ fontWeight: 'bold' }} target={'_blank'}>{proj.id}-{proj.name}.kokoro.codes!</a></p>
+      <p>Залей свой собранный проект сюда, чтобы Чоко собрала все и выложила на <a href={`http://${proj.project_id}-${proj.name}.kokoro.codes`} style={{ fontWeight: 'bold' }} target={'_blank'}>{proj.project_id}-{proj.name}.kokoro.codes!</a></p>
       { this.hasEmptyDirectories && <p style={{ color: 'red' }}>Папки не могут быть пустыми, удалите их или добавьте файлы</p> }
       <Row>
         <p
@@ -264,7 +264,7 @@ export default class ProjectUploadMultipleDirectory extends React.Component {
                 loading={project.loading}
                 uploaded={this.allUploaded}
                 onRemove={this.onRemove}
-                onClear={() => project.clearProjectStorage(proj.id, () => this.reset(false))}
+                onClear={() => project.clearProjectStorage(proj.project_id, () => this.reset(false))}
                 onReset={this.reset}
               />
             </Col> : null
@@ -279,7 +279,7 @@ export default class ProjectUploadMultipleDirectory extends React.Component {
         >
           <TreeNode
             disabled={project.loading}
-            title={proj.name}
+            title={proj.project_name}
             key={MAIN_FOLDER}
           >
             {

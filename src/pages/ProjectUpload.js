@@ -45,12 +45,12 @@ export default class ProjectUpload extends React.Component {
             <Tooltip
               placement="rightTop"
               title={
-                `Выбери одну директорию, если все файлы твоего фронтенда лежат в одной папке рядом с index.html.
-              Если же твой собранный проект содержит вложенность директорий, где картинки лежат в директории img и все такое - выбирай несколько директорий.
+                `Выбери малый, если все файлы твоего фронтенда лежат в одной папке рядом с index.html.
+              Если же твой собранный проект содержит вложенность директорий, где картинки лежат в директории img и все такое - выбирай большой.
               При загрузке проекта с несколькими директориями максимальный лимит на каждый файл 3.5мб.`
               }
             >
-              <Switch checked={this.route === 2} onChange={val => this.route = val ? 2 : 1} checkedChildren="Несколько директорий" unCheckedChildren="Одна директория" />
+              <Switch checked={this.route === 2} onChange={val => this.route = val ? 2 : 1} checkedChildren="Большой" unCheckedChildren="Малый" />
             </Tooltip>
           </Col>
         </Row>
