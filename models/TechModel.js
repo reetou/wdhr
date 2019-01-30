@@ -24,7 +24,6 @@ class TechModel extends BaseModel {
       ],
 
       properties: {
-        tech_id: { type: 'integer' },
         tech_name: { type: 'string', minLength: 1, maxLength: 255 },
       }
     };
