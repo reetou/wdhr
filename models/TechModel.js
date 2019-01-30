@@ -19,7 +19,6 @@ class TechModel extends BaseModel {
     return {
       type: 'object',
       required: [
-        'tech_id',
         'tech_name',
       ],
 
