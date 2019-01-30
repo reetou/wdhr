@@ -54,12 +54,6 @@ export default class ProjectStore {
   }
 
   @computed get
-  projectOwner() {
-    if (!this.currentProject.name) return {}
-    return this.currentProject.members.filter(v => v.project_owner)[0]
-  }
-
-  @computed get
   sortedUserProjects() {
     return _.sortBy(this.userProjects, 'id')
   }
