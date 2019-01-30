@@ -1,6 +1,6 @@
 
 exports.seed = async function(knex, Promise) {
-  const ParticipationModel = require('../models/ParticipationModel')
+  const ParticipationModel = require('../../models/ParticipationModel')
   const _ = require('lodash')
   const { transaction } = require('objection')
   const Knex = ParticipationModel.knex()

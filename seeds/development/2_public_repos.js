@@ -1,6 +1,6 @@
 
 exports.seed = async function(knex, Promise) {
-  const PublicRepoModel = require('../models/PublicRepoModel')
+  const PublicRepoModel = require('../../models/PublicRepoModel')
   const _ = require('lodash')
   const { transaction } = require('objection')
   const Knex = PublicRepoModel.knex()

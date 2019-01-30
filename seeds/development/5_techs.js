@@ -15,14 +15,8 @@ exports.seed = async function(knex, Promise) {
       tech_name: 'Node.js',
     },
     {
-      tech_name: 'React'
+      tech_name: 'React',
     },
-    {
-      tech_name: 'Angular 1.x'
-    },
-    {
-      tech_name: 'Angular 2+'
-    }
   ]
 
   for (let r of rates) {
