@@ -72,10 +72,13 @@ router.get('/', checkAuth(), asyncFn(async (req, res) => {
 }))
 
 router.get('/:id', checkAuth(), asyncFn(async (req, res) => {
-  const result = await Projects.getById(req.params.id, req.user.username, false, true)
+  const result = await Projects.getById(req.params.id, false)
   if (!result) return res.status(404).send({ err: `No public or associated project id ${req.params.id} found` })
-  const project = (await Projects.getProjectsPermissions([result], req.user.username))[0]
-  res.send(project)
+  const isOwner = result.owner === req.user.username
+  console.log(`Is owner??`, isOwner, result)
+  const projectInfo = await Projects.getAdditionalProjectInfo(result, { requests: isOwner, members: isOwner })
+  const projectPermissions = (await Projects.getProjectsPermissions([projectInfo], req.user.username))[0]
+  res.send(projectPermissions)
 }))
 
 router.post('/', checkAuth(), asyncFn(async (req, res) => {

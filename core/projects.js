@@ -280,6 +280,7 @@ class Projects {
   }
 
   async getAdditionalProjectInfo(source, options) {
+    console.log(`Options`, options)
     if (!_.isObject(options)) options = {}
     const project = _.cloneDeep(source)
     project.rating = project.rates.length
@@ -293,6 +294,7 @@ class Projects {
       .select(['telegram', 'comment', 'position', 'telegram', 'request_login'])
       .where({ request_status: 0 })
       .andWhere({ project_id: project.project_id })
+    console.log(`Requests`, participation_requests)
     if (options.requests) {
       project.participation_requests = participation_requests
     }
@@ -332,7 +334,7 @@ class Projects {
       .first()
   }
 
-  async getById(project_id, checkPrivate = false) {
+  async getById(project_id, checkPrivate = false, options) {
     let project = await ProjectModel
       .query()
       .where(builder => {
@@ -340,8 +342,9 @@ class Projects {
         return builder.where({ project_id }).andWhere({ is_public: true })
       })
       .first()
+    if (!project) return false
     await ProjectModel.loadRelated([project], 'rates')
-    project = await this.getAdditionalProjectInfo(project)
+    project = await this.getAdditionalProjectInfo(project, options)
     return project
   }
 
