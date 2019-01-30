@@ -324,9 +324,11 @@ class Projects {
       const uprate = ProjectRatingModel
         .query()
         .insert(data)
-      await pusher.projectRate(project.owner, {
-        login: data.login, project_name: project.project_name
-      })
+      if (project.owner !== data.login) {
+        await pusher.projectRate(project.owner, {
+          login: data.login, project_name: project.project_name
+        })
+      }
       return uprate
     }
     const downrate = await ProjectRatingModel
@@ -336,9 +338,11 @@ class Projects {
       .del()
       .returning('*')
       .first()
-    await pusher.projectRateRevert(project.owner, {
-      login: data.login, project_name: project.project_name
-    })
+    if (project.owner !== data.login) {
+      await pusher.projectRateRevert(project.owner, {
+        login: data.login, project_name: project.project_name
+      })
+    }
     return downrate
   }
 
@@ -380,6 +384,7 @@ class Projects {
     } = data
     const project = await this.getById(project_id)
     if (!project) throw new Error(`No such project ${project_id}`)
+    if (request_login === project.owner) throw new Error(`Cannot request participation in your own project`)
     const request = await ParticipationModel.query().where({ project_id }).andWhere({ request_login }).first()
     if (request) throw new Error(`Already requested user ${request_login} for project ${project_id}`)
     const result = await ParticipationModel
@@ -431,7 +436,7 @@ class Projects {
         .first()
       await trx.commit()
       await pusher.participationAccept(request_login, {
-        name: result.project_name,
+        project_name: result.project_name,
         request_login,
         date: Date.now(),
         position: result.position
@@ -458,7 +463,7 @@ class Projects {
       await trx.commit()
       const data = {
         request_login,
-        name: result.project_name,
+        project_name: result.project_name,
         date: Date.now(),
       }
       await pusher.participationReject(request_login, data)
