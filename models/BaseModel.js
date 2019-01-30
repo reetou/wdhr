@@ -6,9 +6,9 @@ const knex = Knex({
 	client: 'postgresql',
 	useNullAsDefault: true,
 	connection: {
-		database: 'wdhr_dev',
-		user: 'postgres',
-		password: 'postgres'
+		database: process.env.POSTGRES_DATABASE,
+		user: process.env.POSTGRES_USER,
+		password: process.env.POSTGRES_PASSWORD
 	}
 });
 
